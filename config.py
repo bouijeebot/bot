@@ -1,0 +1,6 @@
+# config.py
+
+TELEGRAM_TOKEN = "7692679752:AAH8QUrMAjnUBrnoy4pe0mMuTcosCRxfV2Q"
+SHEETS_ID = "1OdUvncaZUtf8z6ZfzOS0RYNJ3BBIv6wJPynBjRXeGWs"
+SHEET_NAME = "Sheet1"
+GOOGLE_CREDENTIALS_FILE = "credentials.json"
