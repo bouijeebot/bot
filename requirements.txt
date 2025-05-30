@@ -2,4 +2,4 @@ python-dotenv
 gspread
 google-auth
 pyTelegramBotAPI
-flask
+Flask
