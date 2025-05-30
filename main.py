@@ -338,4 +338,4 @@ if __name__ == "__main__":
     check_signals_result()
     check_for_missing_results()
     bot.remove_webhook()
-    bot.set_webhook(url="https://bot-0xdn.onrender.com")
+    bot.set_webhook(url="https://bot-0xdn.onrender.com/")
