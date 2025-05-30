@@ -1,4 +1,4 @@
+.env
 credentials.json
 client_secret.json
-credentials.json
-client_secret.json
+__pycache__/
