@@ -6,6 +6,7 @@ import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime, timedelta
 import threading
+from keep_alive import keep_alive
 
 # === Ladda miljövariabler ===
 load_dotenv()
@@ -333,6 +334,8 @@ def handle_unexpected_messages(message):
 # === Starta ===
 if __name__ == "__main__":
     print("Bouijee Bot är igång...")
+    keep_alive()  # Startar Flask-servern
     check_signals_result()
     check_for_missing_results()
-    bot.polling()
+    bot.remove_webhook()
+    bot.set_webhook(url="https://bot-0xdn.onrender.com")
