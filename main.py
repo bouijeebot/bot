@@ -29,6 +29,18 @@ def receive_update():
     return "", 200
 
 # === Google Sheets funktioner ===
+def register_user_if_not_exists(telegram_id):
+    creds = get_credentials()
+    sheet = gspread.authorize(creds).open_by_key(SHEET_ID).worksheet("Users")
+    all_data = sheet.get_all_records()
+
+    for row in all_data:
+        if str(row.get("Telegram-ID")) == str(telegram_id):
+            return  # Redan registrerad
+
+    # Lägg till ny användare med standardvärden
+    sheet.append_row([telegram_id, 1000, "Ej angiven", datetime.now().strftime("%Y-%m-%d")])
+    
 import json
 
 def get_credentials():
@@ -102,17 +114,21 @@ def update_user_risk(telegram_id, risk_level):
 # === /start ===
 @bot.message_handler(commands=["start"])
 def send_welcome(message):
+    telegram_id = str(message.from_user.id)
+    register_user_if_not_exists(telegram_id)
+
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton("✨NU KÖR VI!✨", callback_data="demo_signal"))
+
     bot.send_message(
         message.chat.id,
         "Heeey din katt! 😻✨\n\n"
         "Jag är *Bouijee Bot* – din fab trading-bestie som sniffar pengar snabbare än du hittar dina klackar en lördagkväll. 👠💸\n\n"
         "När jag säger *BUY💚* eller *SELL💔*, så bör signalen accepteras inom rätt tid för bästa resultat. 📉📈\n\n"
         "Så häll upp ett glas bubbel 🥂, luta dig tillbaka, och låt mig servera dig signaler med mer precision än din eyeliner.\n\n"
-        "Let’s get rich – men make it fabulous.\n\n"
-        "Xoxo NU KÖR VI! 💃🏽\n\n"
-        "*Klicka bara på knappen när du är redo att glänsa!*",
+        "*Let’s get rich – men make it fabulous.*\n\n"
+        "_Xoxo NU KÖR VI! 💃🏽_\n\n"
+        "👉 Du kan skriva /meny när som helst för att återgå till menyn.",
         reply_markup=markup,
         parse_mode="Markdown"
     )
