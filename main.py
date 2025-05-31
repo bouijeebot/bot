@@ -33,7 +33,7 @@ def get_credentials():
     SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
     return Credentials.from_service_account_file(GOOGLE_CREDENTIALS_FILE, scopes=SCOPES)
 
-def log_trade_signal(telegram_id, user, symbol, action)
+def log_signal_to_sheet(sheet_name, values):
     creds = get_credentials()
     gc = gspread.authorize(creds)
     sh = gc.open_by_key(SHEET_ID)
