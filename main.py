@@ -114,16 +114,24 @@ def show_menu(message):
     markup.add(
         InlineKeyboardButton("Mitt konto 💼", callback_data="mitt_konto"),
         InlineKeyboardButton("ℹ️ Info", callback_data="info"),
+        InlineKeyboardButton("📊 Valutapar info", callback_data="valutapar_info"),
+    )
+    markup.add(
         InlineKeyboardButton("⚖️ Risknivå", callback_data="risknivå"),
         InlineKeyboardButton("💃🏽 Invänta signal", callback_data="standby")
     )
-    bot.send_message(message.chat.id, "✨ *Bouijee Bot Meny* ✨\n\nVad vill du göra nu, babes?🤷🏽‍♀️", reply_markup=markup, parse_mode="Markdown")
+    bot.send_message(
+        message.chat.id,
+        "✨ *Bouijee Bot Meny* ✨\n\nVad vill du göra nu, babes?🤷🏽‍♀️",
+        reply_markup=markup,
+        parse_mode="Markdown"
+    )
 
 def send_standby_button(chat_id):
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton("💃🏽 Invänta signal", callback_data="standby"))
     bot.send_message(chat_id, "Klicka för att börja ta emot signaler, darling!✨", reply_markup=markup)
-
+    
 # === Menyknappar ===
 @bot.callback_query_handler(func=lambda call: call.data == "demo_signal")
 def show_main_menu(call):
@@ -366,6 +374,24 @@ def handle_unexpected_messages(message):
         "Babe, tryck på en knapp istället – jag jobbar inte med DMs! ✨",
         parse_mode="Markdown"
     )
+    
+# === Valutapar info-knapp ===
+@bot.callback_query_handler(func=lambda call: call.data == "valutapar_info")
+def show_valutapar_info(call):
+    valutapar_info_text = """
+<b>Info om valutaparen</b>
+(Sorterade från låg till hög risk)
+
+1. <b>USDCHF</b> – 💚 Väldigt stabilt, låg volatilitet. Går ofta motsatt EURUSD.  
+2. <b>EURCHF</b> – 💚 Två säkra valutor. Rör sig långsamt – används ofta i försiktiga strategier.  
+3. <b>EURUSD</b> – 💚 Mest handlade paret. Stabilt, låg spread. Bra för nybörjare.  
+4. <b>USDJPY</b> – 💛 Ofta stabilt, men kan reagera starkt på nyheter från centralbanker.  
+5. <b>EURJPY</b> – 💛 Lite mer rörelse än EURUSD. Bra balans mellan stabilitet och potential.  
+6. <b>GBPUSD</b> – 💛 Mer volatil än EURUSD. Kräver lite mer koll, men ger också större möjligheter.  
+7. <b>XAUUSD (Guld)</b> – ❤️‍🔥 Volatilt och känsligt för geopolitik. För dig som gillar tempo.  
+8. <b>GBPJPY</b> – ❤️‍🔥 Kallas <i>"The Beast"</i>. Väldigt volatilt. Hög risk men hög potential.
+"""
+    bot.send_message(call.message.chat.id, valutapar_info_text, parse_mode="HTML")
 
 # === Starta på Render ===
 if __name__ == "__main__":
