@@ -1,3 +1,4 @@
+from flask import Flask, request
 import os
 from dotenv import load_dotenv
 import telebot
@@ -14,6 +15,18 @@ SHEET_ID = os.getenv("SHEET_ID")
 GOOGLE_CREDENTIALS_FILE = "credentials.json"
 
 bot = telebot.TeleBot(TOKEN)
+app = Flask(__name__)
+
+@app.route("/", methods=["GET"])
+def home():
+    return "Bouijee Bot är igång!", 200
+
+@app.route("/", methods=["POST"])
+def receive_update():
+    json_str = request.get_data().decode("UTF-8")
+    update = telebot.types.Update.de_json(json_str)
+    bot.process_new_updates([update])
+    return "", 200
 
 # === Google Sheets funktioner ===
 def get_credentials():
@@ -332,11 +345,9 @@ def handle_unexpected_messages(message):
 
 # === Starta på Render ===
 if __name__ == "__main__":
-    from keep_alive import keep_alive
-
     print("Bouijee Bot är igång...")
-
-    keep_alive()  # Startar Flask-servern
-
     bot.remove_webhook()
-    bot.set_webhook(url="https://bot-0xdn.onrender.com/")
+    bot.set_webhook(url="https://bot-0xdn.onrender.com/")  # eller din faktiska Render-URL
+
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
