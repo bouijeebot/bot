@@ -1,21 +1,15 @@
-from flask import Flask, request
-import telebot
-import os
+from flask import Flask
+from threading import Thread
 
-app = Flask(__name__)
-TOKEN = os.getenv("TELEGRAM_TOKEN")
-bot = telebot.TeleBot(TOKEN)
+app = Flask('')
 
-@app.route('/', methods=['GET'])
+@app.route('/')
 def home():
-    return "Bouijee Bot is live! 💅", 200
+    return "Bouijee Bot is live! 💅"
 
-@app.route('/', methods=['POST'])
-def webhook():
-    json_str = request.get_data().decode('utf-8')
-    update = telebot.types.Update.de_json(json_str)
-    bot.process_new_updates([update])
-    return '', 200
+def run():
+    app.run(host='0.0.0.0', port=8080)
 
 def keep_alive():
-    app.run(host='0.0.0.0', port=8080)
+    t = Thread(target=run)
+    t.start()
