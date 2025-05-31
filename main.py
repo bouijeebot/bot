@@ -54,15 +54,16 @@ def log_signal_to_sheet(sheet_name, values):
 def log_trade_signal(telegram_id, user_name, symbol, action):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
     values = [
-        timestamp,
-        user_name,
-        telegram_id,
-        symbol,
-        "",      # Result – fylls i senare
-        "",      # Profit – fylls i senare
-        action,
-        "Yes"    # Accepted
-    ]
+    timestamp,
+    user_name,
+    telegram_id,
+    symbol,
+    "",      # Result
+    "",      # Profit
+    action,
+    "Yes",   # Accepted
+    ""       # Executed – fylls i senare av MT4
+]
     log_signal_to_sheet("Signals", values)
 
 def get_user_balance(telegram_id):
@@ -77,7 +78,7 @@ def get_user_risk(telegram_id):
     creds = get_credentials()
     sheet = gspread.authorize(creds).open_by_key(SHEET_ID).worksheet("Users")
     for row in sheet.get_all_records():
-        if str(row.get("Telegram-ID")) == str(telegram_id) and row_time >= week_ago:
+        if str(row.get("Telegram-ID")) == str(telegram_id):
             return row.get("Risknivå", "Ej angiven")
     return "Ej angiven"
 
@@ -230,21 +231,21 @@ def handle_mitt_konto(call):
     forluster = 0
     total_pnl = 0
 
-    for row in rows:
+        for row in rows:
         try:
-        row_time = datetime.strptime(row["Timestamp"], "%Y-%m-%d %H:%M")
-    except:
-        continue
-    if str(row.get("Telegram-ID")) == str(telegram_id) and row_time >= week_ago:
-        try:
-            pnl = float(row.get("Profit", 0))
+            row_time = datetime.strptime(row["Timestamp"], "%Y-%m-%d %H:%M")
         except:
-            pnl = 0
-        total_pnl += pnl
-        if pnl > 0:
-            vinster += 1
-        elif pnl < 0:
-            forluster += 1
+            continue
+        if str(row.get("Telegram-ID")) == str(telegram_id) and row_time >= week_ago:
+            try:
+                pnl = float(row.get("Profit", 0))
+            except:
+                pnl = 0
+            total_pnl += pnl
+            if pnl > 0:
+                vinster += 1
+            elif pnl < 0:
+                forluster += 1
 
     total_signaler = vinster + forluster
     win_rate = round((vinster / total_signaler) * 100, 1) if total_signaler > 0 else 0
