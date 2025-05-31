@@ -29,9 +29,12 @@ def receive_update():
     return "", 200
 
 # === Google Sheets funktioner ===
+import json
+
 def get_credentials():
     SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-    return Credentials.from_service_account_file(GOOGLE_CREDENTIALS_FILE, scopes=SCOPES)
+    service_account_info = json.loads(os.environ["SERVICE_ACCOUNT_JSON"])
+    return Credentials.from_service_account_info(service_account_info, scopes=SCOPES)
 
 def log_signal_to_sheet(sheet_name, values):
     creds = get_credentials()
