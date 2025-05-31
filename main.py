@@ -215,12 +215,19 @@ def handle_risk_selection(call):
 # === Konto/Statistik ===
 @bot.callback_query_handler(func=lambda call: call.data == "mitt_konto")
 def handle_mitt_konto(call):
-    print("==> mitt_konto tryck registrerad")  # Debug i Render-loggar
+    print("==> mitt_konto tryck registrerad")
 
     try:
+        import traceback
+
         telegram_id = call.from_user.id
         saldo = get_user_balance(telegram_id)
         risk = get_user_risk(telegram_id)
+
+        if saldo is None or saldo == "":
+            saldo = "Ej angivet"
+        if risk is None or risk == "":
+            risk = "Ej angiven"
 
         creds = get_credentials()
         sheet = gspread.authorize(creds).open_by_key(SHEET_ID).worksheet("Signals")
@@ -239,6 +246,7 @@ def handle_mitt_konto(call):
                 row_time = datetime.strptime(row["Timestamp"], "%Y-%m-%d %H:%M")
             except:
                 continue
+
             if str(row.get("Telegram-ID")) == str(telegram_id) and row_time >= week_ago:
                 try:
                     pnl = float(row.get("Profit", 0))
@@ -269,7 +277,7 @@ def handle_mitt_konto(call):
         bot.send_message(call.message.chat.id, text, reply_markup=markup, parse_mode="Markdown")
 
     except Exception as e:
-        print("Fel i mitt_konto:", e)
+        traceback.print_exc()
         bot.send_message(call.message.chat.id, "Oops! Kunde inte hämta kontoinformation just nu. Försök igen om en liten stund. 💔")
 
 # === Bekräfta signal ===
