@@ -273,7 +273,7 @@ def handle_confirm_signal(call):
         risk_value = "Ej beräknat"
 
     bot.send_message(call.message.chat.id, f"Signal *{action}* bekräftad för ~{risk}% av ditt saldo ({risk_value} USD). Let's gooo!💃🏽", parse_mode="Markdown")
-    log_signal_to_sheet("Signals", [timestamp, user, telegram_id, "SIGNAL", action, "", "", ""])
+    log_trade_signal(telegram_id, user, symbol, action)
 
 # === Skicka signal ===
 def send_signal(action, symbol="EURUSD", chat_id=None):
