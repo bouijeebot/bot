@@ -331,10 +331,13 @@ def handle_unexpected_messages(message):
         parse_mode="Markdown"
     )
 
-# === Starta ===
+# === Starta på Render ===
 if __name__ == "__main__":
     from keep_alive import keep_alive
-    keep_alive()
+
     print("Bouijee Bot är igång...")
 
-    bot.infinity_polling()
+    keep_alive()  # Startar Flask-servern
+
+    bot.remove_webhook()
+    bot.set_webhook(url="https://bot-0xdn.onrender.com/")
