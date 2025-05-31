@@ -219,7 +219,37 @@ def handle_risk_selection(call):
         reply_markup=markup
     )
 
+@bot.callback_query_handler(func=lambda call: call.data in ["risk_1", "risk_2", "risk_3"])
+def handle_risk_choice(call):
+    telegram_id = str(call.from_user.id)
+    risk_value = {
+        "risk_1": "1%",
+        "risk_2": "2%",
+        "risk_3": "3%"
+    }.get(call.data, "Ej angiven")
 
+    try:
+        creds = get_credentials()
+        sheet = gspread.authorize(creds).open_by_key(SHEET_ID).worksheet("Users")
+        all_data = sheet.get_all_records()
+        cell = None
+
+        for idx, row in enumerate(all_data, start=2):  # Startar från rad 2 (efter header)
+            if str(row.get("Telegram-ID")) == telegram_id:
+                cell = f"C{idx}"  # Kolumn C = Risknivå
+                break
+
+        if cell:
+            sheet.update_acell(cell, risk_value)
+            bot.answer_callback_query(call.id, f"Risknivå satt till {risk_value} ⚖️")
+        else:
+            bot.answer_callback_query(call.id, "Kunde inte hitta din användare. 😢")
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        bot.answer_callback_query(call.id, "Fel uppstod när risk skulle uppdateras. 😓")
+        
 # === Konto/Statistik ===
 @bot.callback_query_handler(func=lambda call: call.data == "mitt_konto")
 def handle_mitt_konto(call):
