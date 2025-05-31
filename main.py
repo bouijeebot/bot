@@ -231,7 +231,7 @@ def handle_mitt_konto(call):
     forluster = 0
     total_pnl = 0
 
-        for row in rows:
+    for row in rows:
         try:
             row_time = datetime.strptime(row["Timestamp"], "%Y-%m-%d %H:%M")
         except:
@@ -304,9 +304,8 @@ def check_signals_result():
             user = row.get("User")
             telegram_id = row.get("Telegram-ID")
             profit = row.get("Profit")
-            notified = row.get("Notified", "").lower()
 
-            if not telegram_id or notified == "yes" or profit == "":
+            if not telegram_id or profit == "":
                 continue
 
             try:
@@ -323,9 +322,10 @@ def check_signals_result():
                 continue
 
             bot.send_message(chat_id=telegram_id, text=text)
-            row_index = rows.index(row) + 2
-            sheet.update_cell(row_index, 8, "Yes")
 
+        threading.Timer(300, check_signals_result).start()
+    except Exception as e:
+        print("Fel i check_signals_result:", e)
         threading.Timer(300, check_signals_result).start()
     except Exception as e:
         print("Fel i check_signals_result:", e)
