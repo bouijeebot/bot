@@ -38,7 +38,31 @@ def log_signal_to_sheet(sheet_name, values):
     gc = gspread.authorize(creds)
     sh = gc.open_by_key(SHEET_ID)
     worksheet = sh.worksheet(sheet_name)
+
+    # Validera rubriker
+    expected_header = ["Timestamp", "User", "Signal", "Result", "Profit", "Action", "Accepted"]
+    actual_header = worksheet.row_values(1)
+    if actual_header != expected_header:
+        raise ValueError(
+            f"Felaktiga kolumnrubriker i bladet '{sheet_name}'.\n"
+            f"Förväntat: {expected_header}\n"
+            f"Hittat:    {actual_header}"
+        )
+
     worksheet.append_row(values)
+
+def log_trade_signal(telegram_id, user_name, symbol, action):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+    values = [
+        timestamp,
+        user_name,
+        symbol,
+        "",      # Result – fylls i senare
+        "",      # Profit – fylls i senare
+        action,
+        "Yes"    # Accepted
+    ]
+    log_signal_to_sheet("Signals", values)
 
 def get_user_balance(telegram_id):
     creds = get_credentials()
