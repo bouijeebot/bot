@@ -215,55 +215,62 @@ def handle_risk_selection(call):
 # === Konto/Statistik ===
 @bot.callback_query_handler(func=lambda call: call.data == "mitt_konto")
 def handle_mitt_konto(call):
-    telegram_id = call.from_user.id
-    saldo = get_user_balance(telegram_id)
-    risk = get_user_risk(telegram_id)
+    print("==> mitt_konto tryck registrerad")  # Debug i Render-loggar
 
-    creds = get_credentials()
-    sheet = gspread.authorize(creds).open_by_key(SHEET_ID).worksheet("Signals")
-    rows = sheet.get_all_records()
+    try:
+        telegram_id = call.from_user.id
+        saldo = get_user_balance(telegram_id)
+        risk = get_user_risk(telegram_id)
 
-    user_first_name = call.from_user.first_name or "Okänd"
-    now = datetime.now()
-    week_ago = now - timedelta(days=7)
+        creds = get_credentials()
+        sheet = gspread.authorize(creds).open_by_key(SHEET_ID).worksheet("Signals")
+        rows = sheet.get_all_records()
 
-    vinster = 0
-    forluster = 0
-    total_pnl = 0
+        user_first_name = call.from_user.first_name or "Okänd"
+        now = datetime.now()
+        week_ago = now - timedelta(days=7)
 
-    for row in rows:
-        try:
-            row_time = datetime.strptime(row["Timestamp"], "%Y-%m-%d %H:%M")
-        except:
-            continue
-        if str(row.get("Telegram-ID")) == str(telegram_id) and row_time >= week_ago:
+        vinster = 0
+        forluster = 0
+        total_pnl = 0
+
+        for row in rows:
             try:
-                pnl = float(row.get("Profit", 0))
+                row_time = datetime.strptime(row["Timestamp"], "%Y-%m-%d %H:%M")
             except:
-                pnl = 0
-            total_pnl += pnl
-            if pnl > 0:
-                vinster += 1
-            elif pnl < 0:
-                forluster += 1
+                continue
+            if str(row.get("Telegram-ID")) == str(telegram_id) and row_time >= week_ago:
+                try:
+                    pnl = float(row.get("Profit", 0))
+                except:
+                    pnl = 0
+                total_pnl += pnl
+                if pnl > 0:
+                    vinster += 1
+                elif pnl < 0:
+                    forluster += 1
 
-    total_signaler = vinster + forluster
-    win_rate = round((vinster / total_signaler) * 100, 1) if total_signaler > 0 else 0
+        total_signaler = vinster + forluster
+        win_rate = round((vinster / total_signaler) * 100, 1) if total_signaler > 0 else 0
 
-    text = (
-        f"**Ditt konto**\n"
-        f"💰 Saldo: {saldo} USD\n"
-        f"⚖️ Risk per trade: {risk}\n\n"
-        f"**Senaste 7 dagarna**\n"
-        f"💚 Vinster: {vinster}\n"
-        f"💔 Förluster: {forluster}\n"
-        f"🏆 Win rate: {win_rate}%\n\n"
-        f"📊 Total PnL: {round(total_pnl, 2)} USD"
-    )
+        text = (
+            f"**Ditt konto**\n"
+            f"💰 Saldo: {saldo} USD\n"
+            f"⚖️ Risk per trade: {risk}\n\n"
+            f"**Senaste 7 dagarna**\n"
+            f"💚 Vinster: {vinster}\n"
+            f"💔 Förluster: {forluster}\n"
+            f"🏆 Win rate: {win_rate}%\n\n"
+            f"📊 Total PnL: {round(total_pnl, 2)} USD"
+        )
 
-    markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("⬅️ Tillbaka till meny", callback_data="demo_signal"))
-    bot.send_message(call.message.chat.id, text, reply_markup=markup, parse_mode="Markdown")
+        markup = InlineKeyboardMarkup()
+        markup.add(InlineKeyboardButton("⬅️ Tillbaka till meny", callback_data="demo_signal"))
+        bot.send_message(call.message.chat.id, text, reply_markup=markup, parse_mode="Markdown")
+
+    except Exception as e:
+        print("Fel i mitt_konto:", e)
+        bot.send_message(call.message.chat.id, "Oops! Kunde inte hämta kontoinformation just nu. Försök igen om en liten stund. 💔")
 
 # === Bekräfta signal ===
 @bot.callback_query_handler(func=lambda call: call.data.startswith("confirm_"))
