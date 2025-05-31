@@ -6,7 +6,6 @@ import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime, timedelta
 import threading
-from keep_alive import keep_alive
 
 # === Ladda miljövariabler ===
 load_dotenv()
