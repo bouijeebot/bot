@@ -87,8 +87,8 @@ def update_user_risk(telegram_id, risk_level):
     sheet = gspread.authorize(creds).open_by_key(SHEET_ID).worksheet("Users")
     all_values = sheet.get_all_values()
     for i, row in enumerate(all_values):
-        if str(row[0]) == str(telegram_id):  # Telegram-ID antas vara i kolumn A
-            sheet.update_cell(i + 1, 3, f"{risk_level}%")  # Risknivå antas vara i kolumn C
+        if str(row[0]) == str(telegram_id):  # Telegram-ID finns i kolumn A (index 0)
+            sheet.update_cell(i + 1, 3, f"{risk_level}%")  # Risknivå finns i kolumn C (index 2, men +1 = 3)
             return
 
 # === /start ===
