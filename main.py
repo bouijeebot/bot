@@ -66,7 +66,7 @@ def log_signal_to_sheet(sheet_name, values):
     worksheet = sh.worksheet(sheet_name)
 
     # Validera rubriker
-    expected_header = ["Timestamp", "User", "Telegram-ID", "Signal", "Result", "Profit", "Action", "Accepted", "Executed"]
+    expected_header = ["Timestamp", "User", "MT4-ID", "Signal", "Result", "Profit", "Action", "Accepted", "Executed"]
     actual_header = worksheet.row_values(1)
     if actual_header != expected_header:
         raise ValueError(
