@@ -298,23 +298,30 @@ def handle_mitt_konto(call):
         vinster = 0
         forluster = 0
         total_pnl = 0
+        missade = 0  # Lägg gärna denna ovanför loopen
 
-        for row in rows:
+for row in rows:
+    try:
+        row_time = datetime.strptime(row["Timestamp"], "%Y-%m-%d %H:%M")
+    except:
+        continue
+
+    if str(row.get("Telegram-ID")) == str(telegram_id):
+        # Räkna missade trades
+        if row.get("Accepted", "").strip().lower() != "yes":
+            missade += 1
+
+        # Endast senaste veckan påverkar PnL-statistik
+        if row_time >= week_ago:
             try:
-                row_time = datetime.strptime(row["Timestamp"], "%Y-%m-%d %H:%M")
+                pnl = float(row.get("Profit", 0))
             except:
-                continue
-
-            if str(row.get("Telegram-ID")) == str(telegram_id) and row_time >= week_ago:
-                try:
-                    pnl = float(row.get("Profit", 0))
-                except:
-                    pnl = 0
-                total_pnl += pnl
-                if pnl > 0:
-                    vinster += 1
-                elif pnl < 0:
-                    forluster += 1
+                pnl = 0
+            total_pnl += pnl
+            if pnl > 0:
+                vinster += 1
+            elif pnl < 0:
+                forluster += 1
 
         total_signaler = vinster + forluster
         win_rate = round((vinster / total_signaler) * 100, 1) if total_signaler > 0 else 0
@@ -328,6 +335,7 @@ def handle_mitt_konto(call):
             f"💔 Förluster: {forluster}\n"
             f"🏆 Win rate: {win_rate}%\n\n"
             f"📊 Total PnL: {round(total_pnl, 2)} USD"
+            f"🚫 Missade trades: {missade}"
         )
 
         markup = InlineKeyboardMarkup()
