@@ -619,7 +619,7 @@ start_signal_loop()
 if __name__ == "__main__":
     print("Bouijee Bot är igång...")
     bot.remove_webhook()
-    bot.set_webhook(url="https://bot-0xdn.onrender.com/")  # eller din faktiska Render-URL
+    bot.set_webhook(url="https://bot-0xdn.onrender.com/")  # 🧠 Byt till din faktiska Render-URL
 
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 5000))  # Render tillhandahåller PORT som miljövariabel
     app.run(host="0.0.0.0", port=port)
