@@ -431,10 +431,10 @@ def check_signals_result():
         rows = sheet.get_all_records()
 
         for row in reversed(rows):
-            user = row.get("User")
             telegram_id = row.get("Telegram-ID")
             profit = row.get("Profit")
             accepted = row.get("Accepted", "").strip().lower()
+            signal_text = row.get("Signal", "").strip()
 
             if not telegram_id or profit == "":
                 continue
@@ -445,26 +445,28 @@ def check_signals_result():
             except:
                 continue
 
-            # === Meddelande till den som bekräftade signalen ===
+            # Hämta klockslag från timestamp
+            entry_time = ""
+            try:
+                entry_time = row.get("Timestamp", "").split(" ")[1]
+            except:
+                entry_time = "okänt"
+
+            # === Meddelande till den som bekräftade ===
             if accepted == "yes":
                 if profit > 0:
-                    text = f"YESSS! {profit} USD i vinst!🎉"
+                    msg = f"✅ {signal_text} kl {entry_time} = +{profit} USD 🎉💰"
                 elif profit < 0:
-                    text = f"Jikes… {abs(profit)} USD i förlust💔"
+                    msg = f"✅ {signal_text} kl {entry_time} = {profit} USD 😵💔"
                 else:
-                    continue
-                bot.send_message(chat_id=telegram_id, text=text)
+                    msg = f"✅ {signal_text} kl {entry_time} = ±0 USD 😐"
+                bot.send_message(chat_id=telegram_id, text=msg)
 
             # === Meddelande till den som missade signalen ===
             else:
-                try:
-                    entry_time = row.get("Timestamp", "").split(" ")[1]
-                    signal_text = row.get("Signal", "SIGNAL")
-                    result = "WIN🏆" if profit > 0 else "LOST💀"
-                    missed_msg = f"❌ Missad signal: {signal_text} kl {entry_time} = {result}"
-                    bot.send_message(chat_id=telegram_id, text=missed_msg)
-                except Exception as e:
-                    print("Fel vid missad-signal-meddelande:", e)
+                result = "WIN🏆" if profit > 0 else "LOST💀"
+                msg = f"❌ Missad signal: {signal_text} kl {entry_time} = {result}"
+                bot.send_message(chat_id=telegram_id, text=msg)
 
         threading.Timer(300, check_signals_result).start()
 
