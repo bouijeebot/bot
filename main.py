@@ -360,23 +360,58 @@ def handle_confirm_signal(call):
 
 @bot.callback_query_handler(func=lambda call: True)
 def handle_callback(call):
+    telegram_id = call.from_user.id
+    user = call.from_user.first_name or "Okänd"
+
     if call.data == "accept":
-        # Markera som confirmed
         for s in pending_signals:
-            if s['user_id'] == call.from_user.id and not s['confirmed']:
+            if s['user_id'] == telegram_id and not s['confirmed']:
                 s['confirmed'] = True
+                symbol = s.get("symbol", "EURUSD")
+                action = s.get("action", "BUY")
+                bot.send_message(call.message.chat.id, "Yaaas Let’s go!🥂")
+                log_trade_signal(telegram_id, user, symbol, action)
                 break
-        bot.send_message(call.message.chat.id, "Yaaas Let’s go!🥂")
 
     elif call.data == "decline":
-        # Markera som declined / ta bort?
         bot.send_message(call.message.chat.id, "Got it babes🤫 vi tar nästa istället!")
 
 # === Skicka signal ===
 def send_signal(action, symbol="EURUSD", chat_id=None):
+    from datetime import datetime, timedelta
+
+    # 20 minuter framåt från nu
+    entry_time_utc = datetime.utcnow() + timedelta(minutes=20)
+    entry_time_local = datetime.now() + timedelta(minutes=20)
+    entry_str = entry_time_local.strftime("%H:%M")
+
+    # Lägg till signal i väntelistan för påminnelse
+    pending_signals.append({
+        'user_id': chat_id,
+        'entry_time': entry_time_utc,
+        'symbol': symbol,
+        'action': action,
+        'confirmed': False,
+        'reminder_10': False,
+        'reminder_5': False,
+        'reminder_1': False
+    })
+
+    # Knappar
     markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("👍🏼", callback_data=f"confirm_{action.lower()}"))
-    message_text = f"🔥 *SIGNAL* 🔥\n\n{action.upper()} {symbol}\n\nGodkänn om du är redo att glänsa ✨"
+    markup.add(
+        InlineKeyboardButton("✅✅✅", callback_data="accept"),
+        InlineKeyboardButton("❌❌❌", callback_data="decline")
+    )
+
+    # Bouijee-style meddelande
+    message_text = (
+        f"🔥 *MONEY RAIN* 🔥\n\n"
+        f"{'💚' if action.upper() == 'BUY' else '💔'} *{action.upper()} {symbol}*\n"
+        f"⏰ Entry: *{entry_str}*\n\n"
+        "Take it or leave it 💅🏼"
+    )
+
     bot.send_message(chat_id=chat_id, text=message_text, reply_markup=markup, parse_mode="Markdown")
 
 # === Automatiskt notifiera resultat ===
