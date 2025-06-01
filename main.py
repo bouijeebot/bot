@@ -355,6 +355,8 @@ def handle_confirm_signal(call):
     bot.send_message(call.message.chat.id, f"Signal *{action}* bekräftad för ~{risk}% av ditt saldo ({risk_value} USD). Let's gooo!💃🏽", parse_mode="Markdown")
     log_trade_signal(telegram_id, user, symbol, action)
 
+
+
 # === Skicka signal ===
 def send_signal(action, symbol="EURUSD", chat_id=None):
     markup = InlineKeyboardMarkup()
@@ -465,6 +467,9 @@ def show_valutapar_info(call):
 """
     bot.send_message(call.message.chat.id, valutapar_info_text, parse_mode="HTML")
 
+if __name__ == '__main__':
+    app.run()
+    
 # === Starta på Render ===
 if __name__ == "__main__":
     print("Bouijee Bot är igång...")
