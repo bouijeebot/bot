@@ -434,6 +434,7 @@ def check_signals_result():
             user = row.get("User")
             telegram_id = row.get("Telegram-ID")
             profit = row.get("Profit")
+            accepted = row.get("Accepted", "").strip().lower()
 
             if not telegram_id or profit == "":
                 continue
@@ -444,19 +445,29 @@ def check_signals_result():
             except:
                 continue
 
-            if profit > 0:
-                text = f"YESSS! {profit} USD i vinst!🎉"
-            elif profit < 0:
-                text = f"Jikes… {abs(profit)} USD i förlust💔"
+            # === Meddelande till den som bekräftade signalen ===
+            if accepted == "yes":
+                if profit > 0:
+                    text = f"YESSS! {profit} USD i vinst!🎉"
+                elif profit < 0:
+                    text = f"Jikes… {abs(profit)} USD i förlust💔"
+                else:
+                    continue
+                bot.send_message(chat_id=telegram_id, text=text)
+
+            # === Meddelande till den som missade signalen ===
             else:
-                continue
-
-            bot.send_message(chat_id=telegram_id, text=text)
+                try:
+                    entry_time = row.get("Timestamp", "").split(" ")[1]
+                    signal_text = row.get("Signal", "SIGNAL")
+                    result = "WIN🏆" if profit > 0 else "LOST💀"
+                    missed_msg = f"❌ Missad signal: {signal_text} kl {entry_time} = {result}"
+                    bot.send_message(chat_id=telegram_id, text=missed_msg)
+                except Exception as e:
+                    print("Fel vid missad-signal-meddelande:", e)
 
         threading.Timer(300, check_signals_result).start()
-    except Exception as e:
-        print("Fel i check_signals_result:", e)
-        threading.Timer(300, check_signals_result).start()
+
     except Exception as e:
         print("Fel i check_signals_result:", e)
         threading.Timer(300, check_signals_result).start()
