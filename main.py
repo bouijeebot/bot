@@ -8,6 +8,9 @@ from google.oauth2.service_account import Credentials
 from datetime import datetime, timedelta
 import threading
 
+# === Pending signals för påminnelser ===
+pending_signals = []
+
 # === Ladda miljövariabler ===
 load_dotenv()
 TOKEN = os.getenv("TELEGRAM_TOKEN")
@@ -482,6 +485,47 @@ def show_valutapar_info(call):
 if __name__ == '__main__':
     app.run()
     
+def reminder_loop():
+    while True:
+        now = datetime.utcnow()
+
+        for signal in pending_signals:
+            if signal['confirmed']:
+                continue
+
+            time_diff = (signal['entry_time'] - now).total_seconds() / 60
+
+            # 10 min kvar
+            if 9 < time_diff <= 10 and not signal.get('reminder_10'):
+                bot.send_message(
+                    signal['user_id'],
+                    "🔔 Psst… Din signal väntar fortfarande på dig! Du har 10 minuter kvar innan signalen går live. Missa den inte!😱"
+                )
+                signal['reminder_10'] = True
+
+            # 5 min kvar
+            elif 4 < time_diff <= 5 and not signal.get('reminder_5'):
+                bot.send_message(
+                    signal['user_id'],
+                    "🔔🔔 Tick-tock babes!! 5 minuter kvar innan din trade går live. Go get that bag💸"
+                )
+                signal['reminder_5'] = True
+
+            # 1 min kvar
+            elif 0 < time_diff <= 1 and not signal.get('reminder_1'):
+                bot.send_message(
+                    signal['user_id'],
+                    "❗️SISTA CHANSEN❗️Nu har du bara 1 minut på dig att acceptera signalen. Don’t miss out..🔥"
+                )
+                signal['reminder_1'] = True
+
+        time.sleep(30)
+
+# Starta påminnelsetråd
+reminder_thread = threading.Thread(target=reminder_loop)
+reminder_thread.daemon = True
+reminder_thread.start()
+
 # === Starta på Render ===
 if __name__ == "__main__":
     print("Bouijee Bot är igång...")
