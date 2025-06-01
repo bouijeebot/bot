@@ -534,10 +534,10 @@ def check_for_missing_results():
                     "Marknaden spelar svårflörtad just nu – vi håller tummarna!✨"
                 )
                 bot.send_message(chat_id=telegram_id, text=msg)
-                row_index = rows.index(row) + 2
-                sheet.update_cell(row_index, 8, "Yes")
 
+        # Kör igen om 5 minuter
         threading.Timer(300, check_for_missing_results).start()
+
     except Exception as e:
         print("Fel i check_for_missing_results:", e)
         threading.Timer(300, check_for_missing_results).start()
