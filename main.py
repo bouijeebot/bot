@@ -65,8 +65,10 @@ def log_signal_to_sheet(sheet_name, values):
     sh = gc.open_by_key(SHEET_ID)
     worksheet = sh.worksheet(sheet_name)
 
-    # Validera rubriker
-    expected_header = ["Timestamp", "Telegram-ID", "MT4-ID", "Signal", "Result", "Profit", "Action", "Accepted", "Executed"]
+    expected_header = [
+        "Timestamp", "Telegram-ID", "MT4-ID", "Signal",
+        "Result", "Profit", "Action", "Accepted", "Executed"
+    ]
     actual_header = worksheet.row_values(1)
     if actual_header != expected_header:
         raise ValueError(
@@ -90,14 +92,14 @@ def log_trade_signal(telegram_id, user_name, symbol, action):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
     values = [
         timestamp,
-        user_name,
+        telegram_id,   # 👈 Viktigt: loggar Telegram-ID här
         mt4_id,
         symbol,
         "",      # Result
         "",      # Profit
         action,
         "Yes",   # Accepted
-        ""       # Executed – fylls i senare av MT4
+        ""       # Executed
     ]
     log_signal_to_sheet("Signals", values)
 
