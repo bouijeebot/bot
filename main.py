@@ -517,10 +517,9 @@ def check_for_missing_results():
         for row in reversed(rows):
             timestamp_str = row.get("Timestamp")
             profit = row.get("Profit", "")
-            notified = row.get("Notified", "").lower()
             telegram_id = row.get("Telegram-ID")
 
-            if not timestamp_str or notified == "yes" or profit != "":
+            if not timestamp_str or profit != "":
                 continue
 
             try:
