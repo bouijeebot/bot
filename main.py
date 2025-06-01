@@ -496,7 +496,7 @@ def check_signals_result():
 
             # === Meddelande till den som missade signalen ===
             else:
-                result = "WIN🏆" if profit > 0 else "LOST💀"
+                result = "WIN🏆" if profit > 0 else "LOSS💀"
                 msg = f"❌ Missad signal: {signal_text} kl {entry_time} = {result}"
                 bot.send_message(chat_id=telegram_id, text=msg)
 
