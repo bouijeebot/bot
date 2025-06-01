@@ -7,6 +7,7 @@ import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime, timedelta
 import threading
+import random
 
 # === Pending signals för påminnelser ===
 pending_signals = []
@@ -421,6 +422,26 @@ def send_signal(action, symbol="EURUSD", chat_id=None):
 
     bot.send_message(chat_id=chat_id, text=message_text, reply_markup=markup, parse_mode="Markdown")
 
+def auto_generate_signal():
+    pairs = ["USDCHF", "EURCHF", "EURUSD", "USDJPY", "EURJPY", "GBPUSD", "XAUUSD", "GBPJPY"]
+    actions = ["BUY", "SELL"]
+    
+    chosen_pair = random.choice(pairs)
+    chosen_action = random.choice(actions)
+
+    creds = get_credentials()
+    gc = gspread.authorize(creds)
+    sheet = gc.open_by_key(SHEET_ID).worksheet("Users")
+    users = sheet.get_all_records()
+
+    for user in users:
+        chat_id = user.get("Telegram-ID")
+        if chat_id:
+            try:
+                send_signal(chosen_action, chosen_pair, chat_id)
+            except Exception as e:
+                print(f"Misslyckades att skicka signal till {chat_id}: {e}")
+                
 # === Automatiskt notifiera resultat ===
 def check_signals_result():
     try:
@@ -580,6 +601,19 @@ def reminder_loop():
 reminder_thread = threading.Thread(target=reminder_loop)
 reminder_thread.daemon = True
 reminder_thread.start()
+
+def start_signal_loop():
+    def loop():
+        while True:
+            auto_generate_signal()
+            time.sleep(3600)  # 60 minuter
+
+    thread = threading.Thread(target=loop)
+    thread.daemon = True
+    thread.start()
+
+# Starta signalgeneratorn
+start_signal_loop()
 
 # === Starta på Render ===
 if __name__ == "__main__":
