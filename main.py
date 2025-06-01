@@ -8,6 +8,7 @@ from google.oauth2.service_account import Credentials
 from datetime import datetime, timedelta
 import threading
 import random
+import time
 
 # === Pending signals för påminnelser ===
 pending_signals = []
@@ -557,9 +558,6 @@ def show_valutapar_info(call):
 8. <b>GBPJPY</b> – ❤️‍🔥 Kallas <i>"The Beast"</i>. Väldigt volatilt. Hög risk men hög potential.
 """
     bot.send_message(call.message.chat.id, valutapar_info_text, parse_mode="HTML")
-
-if __name__ == '__main__':
-    app.run()
     
 def reminder_loop():
     while True:
@@ -614,6 +612,10 @@ def start_signal_loop():
 
 # Starta signalgeneratorn
 start_signal_loop()
+
+# Starta resultatovervakning och påminnelser
+check_signals_result()
+check_for_missing_results()
 
 # === Starta på Render ===
 if __name__ == "__main__":
