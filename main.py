@@ -274,7 +274,6 @@ def handle_risk_choice(call):
 @bot.callback_query_handler(func=lambda call: call.data == "mitt_konto")
 def handle_mitt_konto(call):
     print("==> mitt_konto tryck registrerad")
-
     try:
         import traceback
 
@@ -298,30 +297,30 @@ def handle_mitt_konto(call):
         vinster = 0
         forluster = 0
         total_pnl = 0
-        missade = 0  # Lägg gärna denna ovanför loopen
+        missade = 0
 
-for row in rows:
-    try:
-        row_time = datetime.strptime(row["Timestamp"], "%Y-%m-%d %H:%M")
-    except:
-        continue
-
-    if str(row.get("Telegram-ID")) == str(telegram_id):
-        # Räkna missade trades
-        if row.get("Accepted", "").strip().lower() != "yes":
-            missade += 1
-
-        # Endast senaste veckan påverkar PnL-statistik
-        if row_time >= week_ago:
+        for row in rows:
             try:
-                pnl = float(row.get("Profit", 0))
+                row_time = datetime.strptime(row["Timestamp"], "%Y-%m-%d %H:%M")
             except:
-                pnl = 0
-            total_pnl += pnl
-            if pnl > 0:
-                vinster += 1
-            elif pnl < 0:
-                forluster += 1
+                continue
+
+            if str(row.get("Telegram-ID")) == str(telegram_id):
+                # Räkna missade trades
+                if row.get("Accepted", "").strip().lower() != "yes":
+                    missade += 1
+
+                # Endast senaste veckan påverkar PnL-statistik
+                if row_time >= week_ago:
+                    try:
+                        pnl = float(row.get("Profit", 0))
+                    except:
+                        pnl = 0
+                    total_pnl += pnl
+                    if pnl > 0:
+                        vinster += 1
+                    elif pnl < 0:
+                        forluster += 1
 
         total_signaler = vinster + forluster
         win_rate = round((vinster / total_signaler) * 100, 1) if total_signaler > 0 else 0
@@ -333,8 +332,8 @@ for row in rows:
             f"**Senaste 7 dagarna**\n"
             f"💚 Vinster: {vinster}\n"
             f"💔 Förluster: {forluster}\n"
-            f"🏆 Win rate: {win_rate}%\n\n"
-            f"📊 Total PnL: {round(total_pnl, 2)} USD"
+            f"🏆 Win rate: {win_rate}%\n"
+            f"📊 Total PnL: {round(total_pnl, 2)} USD\n"
             f"🚫 Missade trades: {missade}"
         )
 
