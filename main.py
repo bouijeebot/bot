@@ -77,19 +77,28 @@ def log_signal_to_sheet(sheet_name, values):
 
     worksheet.append_row(values)
 
+def get_mt4_id_by_telegram(telegram_id):
+    creds = get_credentials()
+    sheet = gspread.authorize(creds).open_by_key(SHEET_ID).worksheet("Users")
+    for row in sheet.get_all_records():
+        if str(row.get("Telegram-ID")) == str(telegram_id):
+            return row.get("MT4-ID", "Ej angivet")
+    return "Ej angivet"
+
 def log_trade_signal(telegram_id, user_name, symbol, action):
+    mt4_id = get_mt4_id_by_telegram(telegram_id)
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
     values = [
-    timestamp,
-    user_name,
-    telegram_id,
-    symbol,
-    "",      # Result
-    "",      # Profit
-    action,
-    "Yes",   # Accepted
-    ""       # Executed – fylls i senare av MT4
-]
+        timestamp,
+        user_name,
+        mt4_id,
+        symbol,
+        "",      # Result
+        "",      # Profit
+        action,
+        "Yes",   # Accepted
+        ""       # Executed – fylls i senare av MT4
+    ]
     log_signal_to_sheet("Signals", values)
 
 def get_user_balance(telegram_id):
