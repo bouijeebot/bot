@@ -618,8 +618,11 @@ start_signal_loop()
 # === Starta på Render ===
 if __name__ == "__main__":
     print("Bouijee Bot är igång...")
-    bot.remove_webhook()
-    bot.set_webhook(url="https://bot-0xdn.onrender.com/")  # 🧠 Byt till din faktiska Render-URL
 
-    port = int(os.environ.get("PORT", 5000))  # Render tillhandahåller PORT som miljövariabel
+    # Ta bort eventuell gammal webhook och sätt ny
+    bot.remove_webhook()
+    bot.set_webhook(url="https://bot-0xdn.onrender.com/")  # 🔁 Ändra till din faktiska Render-URL om den byts
+
+    # Starta Flask med rätt port och IP för Render
+    port = int(os.environ.get("PORT", 5000))  # Render sätter PORT som env-variabel
     app.run(host="0.0.0.0", port=port)
