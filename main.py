@@ -355,7 +355,19 @@ def handle_confirm_signal(call):
     bot.send_message(call.message.chat.id, f"Signal *{action}* bekräftad för ~{risk}% av ditt saldo ({risk_value} USD). Let's gooo!💃🏽", parse_mode="Markdown")
     log_trade_signal(telegram_id, user, symbol, action)
 
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    if call.data == "accept":
+        # Markera som confirmed
+        for s in pending_signals:
+            if s['user_id'] == call.from_user.id and not s['confirmed']:
+                s['confirmed'] = True
+                break
+        bot.send_message(call.message.chat.id, "Yaaas Let’s go!🥂")
 
+    elif call.data == "decline":
+        # Markera som declined / ta bort?
+        bot.send_message(call.message.chat.id, "Got it babes🤫 vi tar nästa istället!")
 
 # === Skicka signal ===
 def send_signal(action, symbol="EURUSD", chat_id=None):
