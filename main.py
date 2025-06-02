@@ -217,10 +217,13 @@ def show_menu(message):
     )
     bot.send_message(
         message.chat.id,
-        "✨ *Bouijee Bot Meny* ✨\n\nVad vill du göra nu, babes?🤷🏽‍♀️",
+        "✨ *Bouijee Bot Meny* ✨\n\n"
+        "Vad vill du göra nu, babes? 🤷🏽‍♀️\n\n"
+        "💼 *Psst!* Du kan när som helst uppdatera ditt MT4-ID om du byter konto – klicka bara på *🔁 Byt MT4-ID*. Bouijee fixar. 💅",
         reply_markup=markup,
         parse_mode="Markdown"
     )
+
 
 def send_standby_button(chat_id):
     markup = InlineKeyboardMarkup()
