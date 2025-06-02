@@ -134,21 +134,46 @@ def send_welcome(message):
     telegram_id = str(message.from_user.id)
     register_user_if_not_exists(telegram_id)
 
-    markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("✨NU KÖR VI!✨", callback_data="demo_signal"))
+    creds = get_credentials()
+    sheet = gspread.authorize(creds).open_by_key(SHEET_ID).worksheet("Users")
+    all_data = sheet.get_all_records()
 
-    bot.send_message(
-        message.chat.id,
-        "Heeey din katt! 😻✨\n\n"
-        "Jag är *Bouijee Bot* – din fab trading-bestie som sniffar pengar snabbare än du hittar dina klackar en lördagkväll. 👠💸\n\n"
-        "När jag säger *BUY💚* eller *SELL💔*, så bör signalen accepteras inom rätt tid för bästa resultat. 📉📈\n\n"
-        "Så häll upp ett glas bubbel 🥂, luta dig tillbaka, och låt mig servera dig signaler med mer precision än din eyeliner.\n\n"
-        "*Let’s get rich – men make it fabulous.*\n\n"
-        "_Xoxo NU KÖR VI! 💃🏽_\n\n"
-        "👉 Du kan skriva /meny när som helst för att återgå till menyn.",
-        reply_markup=markup,
-        parse_mode="Markdown"
-    )
+    mt4_id = None
+    for row in all_data:
+        if str(row.get("Telegram-ID")) == telegram_id:
+            mt4_id = row.get("MT4-ID")
+            break
+
+    if not mt4_id or mt4_id.strip() == "":
+        # Visa MT4-kopplingsknapp
+        markup = InlineKeyboardMarkup()
+        markup.add(InlineKeyboardButton("🔗 Koppla ditt MT4-ID", callback_data="koppla_mt4"))
+        bot.send_message(
+            message.chat.id,
+            "Välkommen till *Bouijee Bot*! 💋\n\n"
+            "För att börja ta emot signaler behöver du först koppla ditt MT4-ID 📈👇",
+            reply_markup=markup,
+            parse_mode="Markdown"
+        )
+    else:
+        # Visa vanliga startmenyn
+        markup = InlineKeyboardMarkup()
+        markup.add(InlineKeyboardButton("✨NU KÖR VI!✨", callback_data="demo_signal"))
+
+        bot.send_message(
+            message.chat.id,
+            "Heeey din katt! 😻✨\n\n"
+            "Jag är *Bouijee Bot* – din fab trading-bestie som sniffar pengar snabbare än du hittar dina klackar en lördagkväll. 👠💸\n\n"
+            "*Let’s get rich – men make it fabulous.*\n\n"
+            "👉 Du kan skriva /meny när som helst för att återgå till menyn.",
+            reply_markup=markup,
+            parse_mode="Markdown"
+        )
+
+@bot.callback_query_handler(func=lambda call: call.data == "koppla_mt4")
+def prompt_mt4_id(call):
+    msg = bot.send_message(call.message.chat.id, "Skriv in ditt *MT4-ID* här, babe 💼:", parse_mode="Markdown")
+    bot.register_next_step_handler(msg, save_mt4_id)
 
 # === /meny ===
 @bot.message_handler(commands=["meny"])
