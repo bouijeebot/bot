@@ -558,6 +558,60 @@ def check_signals_result():
         print("Fel i check_signals_result:", e)
         threading.Timer(300, check_signals_result).start()
 
+# === Automatiskt notifiera resultat ===
+def check_signals_result():
+    try:
+        creds = get_credentials()
+        gc = gspread.authorize(creds)
+        sheet = gc.open_by_key(SHEET_ID).worksheet("Signals")
+        rows = sheet.get_all_records()
+
+        for row in reversed(rows):
+            telegram_id = row.get("Telegram-ID")
+            profit = row.get("Profit")
+            accepted = row.get("Accepted", "").strip().lower()
+            signal_text = row.get("Signal", "").strip()
+
+            if not telegram_id or profit == "":
+                continue
+
+            try:
+                profit = float(profit)
+                telegram_id = int(telegram_id)
+            except:
+                continue
+
+            # Hämta klockslag från timestamp
+            entry_time = ""
+            try:
+                entry_time = row.get("Timestamp", "").split(" ")[1]
+            except:
+                entry_time = "okänt"
+
+            if accepted == "yes":
+                if profit > 0:
+                    msg = f"✅ {signal_text} kl {entry_time} = +{profit} USD 🎉💰"
+                elif profit < 0:
+                    msg = f"✅ {signal_text} kl {entry_time} = {profit} USD 😵💔"
+                else:
+                    msg = f"✅ {signal_text} kl {entry_time} = ±0 USD 😐"
+                bot.send_message(chat_id=telegram_id, text=msg)
+            else:
+                result = "WIN🏆" if profit > 0 else "LOSS💀"
+                msg = f"❌ Missad signal: {signal_text} kl {entry_time} = {result}"
+                bot.send_message(chat_id=telegram_id, text=msg)
+
+        # ✅ Lägg till detta för att uppdatera saldon
+        update_all_user_balances()
+
+        # Kör igen om 5 minuter
+        threading.Timer(300, check_signals_result).start()
+
+    except Exception as e:
+        print("Fel i check_signals_result:", e)
+        threading.Timer(300, check_signals_result).start()
+
+
 # === Automatiskt påminna om saknat resultat ===
 def check_for_missing_results():
     try:
