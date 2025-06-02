@@ -423,6 +423,24 @@ def handle_confirm_signal(call):
     bot.send_message(call.message.chat.id, f"Signal *{action}* bekräftad för ~{risk}% av ditt saldo ({risk_value} USD). Let's gooo!💃🏽", parse_mode="Markdown")
     log_trade_signal(telegram_id, user, symbol, action)
 
+# === Valutapar info-knapp ===
+@bot.callback_query_handler(func=lambda call: call.data == "valutapar_info")
+def show_valutapar_info(call):
+    valutapar_info_text = """
+<b>Info om valutaparen</b>
+(Sorterade från låg till hög risk)
+
+1. <b>USDCHF</b> – 💚 Väldigt stabilt, låg volatilitet. Går ofta motsatt EURUSD.  
+2. <b>EURCHF</b> – 💚 Två säkra valutor. Rör sig långsamt – används ofta i försiktiga strategier.  
+3. <b>EURUSD</b> – 💚 Mest handlade paret. Stabilt, låg spread. Bra för nybörjare.  
+4. <b>USDJPY</b> – 💛 Ofta stabilt, men kan reagera starkt på nyheter från centralbanker.  
+5. <b>EURJPY</b> – 💛 Lite mer rörelse än EURUSD. Bra balans mellan stabilitet och potential.  
+6. <b>GBPUSD</b> – 💛 Mer volatil än EURUSD. Kräver lite mer koll, men ger också större möjligheter.  
+7. <b>XAUUSD (Guld)</b> – ❤️‍🔥 Volatilt och känsligt för geopolitik. För dig som gillar tempo.  
+8. <b>GBPJPY</b> – ❤️‍🔥 Kallas <i>"The Beast"</i>. Väldigt volatilt. Hög risk men hög potential.
+"""
+    bot.send_message(call.message.chat.id, valutapar_info_text, parse_mode="HTML")
+
 @bot.callback_query_handler(func=lambda call: True)
 def handle_callback(call):
     telegram_id = call.from_user.id
@@ -646,24 +664,6 @@ def handle_unexpected_messages(message):
         "Babe, tryck på en knapp istället – jag jobbar inte med DMs! ✨",
         parse_mode="Markdown"
     )
-    
-# === Valutapar info-knapp ===
-@bot.callback_query_handler(func=lambda call: call.data == "valutapar_info")
-def show_valutapar_info(call):
-    valutapar_info_text = """
-<b>Info om valutaparen</b>
-(Sorterade från låg till hög risk)
-
-1. <b>USDCHF</b> – 💚 Väldigt stabilt, låg volatilitet. Går ofta motsatt EURUSD.  
-2. <b>EURCHF</b> – 💚 Två säkra valutor. Rör sig långsamt – används ofta i försiktiga strategier.  
-3. <b>EURUSD</b> – 💚 Mest handlade paret. Stabilt, låg spread. Bra för nybörjare.  
-4. <b>USDJPY</b> – 💛 Ofta stabilt, men kan reagera starkt på nyheter från centralbanker.  
-5. <b>EURJPY</b> – 💛 Lite mer rörelse än EURUSD. Bra balans mellan stabilitet och potential.  
-6. <b>GBPUSD</b> – 💛 Mer volatil än EURUSD. Kräver lite mer koll, men ger också större möjligheter.  
-7. <b>XAUUSD (Guld)</b> – ❤️‍🔥 Volatilt och känsligt för geopolitik. För dig som gillar tempo.  
-8. <b>GBPJPY</b> – ❤️‍🔥 Kallas <i>"The Beast"</i>. Väldigt volatilt. Hög risk men hög potential.
-"""
-    bot.send_message(call.message.chat.id, valutapar_info_text, parse_mode="HTML")
     
 def reminder_loop():
     while True:
