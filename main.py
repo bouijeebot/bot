@@ -46,7 +46,7 @@ def register_user_if_not_exists(telegram_id):
 
     # Lägg till ny användare med alla standardvärden
     today = datetime.now().strftime("%Y-%m-%d")  # Registrerad
-    sheet.append_row([telegram_id, 1000, "Ej angiven", today, 0, 0, "Standard"])
+    sheet.append_row([telegram_id, 1000, "1%", today, 0, 0, "Standard"])
     
 import json
 
@@ -117,8 +117,9 @@ def get_user_risk(telegram_id):
     sheet = gspread.authorize(creds).open_by_key(SHEET_ID).worksheet("Users")
     for row in sheet.get_all_records():
         if str(row.get("Telegram-ID")) == str(telegram_id):
-            return row.get("Risknivå", "Ej angiven")
-    return "Ej angiven"
+            risk = row.get("Risknivå", "").strip()
+            return risk if risk else "1%"
+    return "1%"
 
 def update_user_risk(telegram_id, risk_level):
     creds = get_credentials()
