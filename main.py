@@ -241,12 +241,13 @@ def show_info(call):
         "✨ *Rekommenderad första insättning*: $1000 USD\n\n"
         "Men du kan börja med vad du vill – och fylla på när du vill, för att ta ditt konto från *cute* till *cash queen*. 👑\n\n"
         "⚖️ *Risk per signal*:\n"
-        "Du väljer mellan 1%, 2% eller 3% av ditt saldo.\n\n"
+        "Du väljer mellan 1%, 2% eller 3% av ditt saldo.\n"
+        "Om du inte väljer något själv, så sätter Bouijee det automatiskt till *1%* – classy & safe. 💼\n\n"
         "Professionella traders håller sig ofta till:\n"
         "• 1% – (Låg risk) Safe & classy 💁🏽‍♀️\n"
         "• 2% – (Medel risk) Lite spice men fortfarande safe 🌶️\n"
         "• 3% – (Hög risk) Bold babe-mode: mer vinst, mer risk! 🫣\n\n"
-        "*Självklart får du välja själv, men Bouijee rekommenderar 1–2% för att hålla det classy och hållbart. Du kan alltid ändra ditt val i menyn.*\n\n",
+        "*Självklart får du välja själv, men Bouijee rekommenderar 1–2% för att hålla det classy och hållbart. Du kan alltid ändra ditt val i menyn.*"
     )
 
     bot.send_message(
@@ -255,7 +256,6 @@ def show_info(call):
         parse_mode="Markdown"
     )
 
-    # Visa standby-knapp efter infon
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton("💃🏽 Aktivera signaler", callback_data="standby"))
     bot.send_message(
