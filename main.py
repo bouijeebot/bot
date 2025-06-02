@@ -620,43 +620,6 @@ def check_signals_result():
         print("Fel i check_signals_result:", e)
         threading.Timer(300, check_signals_result).start()
 
-
-# === Automatiskt påminna om saknat resultat ===
-def check_for_missing_results():
-    try:
-        creds = get_credentials()
-        gc = gspread.authorize(creds)
-        sheet = gc.open_by_key(SHEET_ID).worksheet("Signals")
-        rows = sheet.get_all_records()
-
-        for row in reversed(rows):
-            timestamp_str = row.get("Timestamp")
-            profit = row.get("Profit", "")
-            telegram_id = row.get("Telegram-ID")
-
-            if not timestamp_str or profit != "":
-                continue
-
-            try:
-                timestamp = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M")
-                telegram_id = int(telegram_id)
-            except:
-                continue
-
-            if datetime.now() - timestamp > timedelta(minutes=30):
-                msg = (
-                    "Hmm... inget resultat än på din senaste signal. "
-                    "Marknaden spelar svårflörtad just nu – vi håller tummarna!✨"
-                )
-                bot.send_message(chat_id=telegram_id, text=msg)
-
-        # Kör igen om 5 minuter
-        threading.Timer(300, check_for_missing_results).start()
-
-    except Exception as e:
-        print("Fel i check_for_missing_results:", e)
-        threading.Timer(300, check_for_missing_results).start()
-
 # === Text fallback ===
 @bot.message_handler(func=lambda message: True, content_types=['text'])
 def handle_unexpected_messages(message):
