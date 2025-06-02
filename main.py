@@ -199,14 +199,12 @@ def show_menu(message):
     )
     markup.add(
         InlineKeyboardButton("⚖️ Risknivå", callback_data="risknivå"),
-        InlineKeyboardButton("💃🏽 Invänta signal", callback_data="standby")
+        InlineKeyboardButton("💃🏽 Aktivera signaler", callback_data="standby")
     )
     markup.add(
         InlineKeyboardButton("🔁 Byt MT4-ID", callback_data="koppla_mt4")
     )
-    markup.add(
-        InlineKeyboardButton("🧠 Om SugarMama", callback_data="om_sugarmama")
-    )
+    
     bot.send_message(
         message.chat.id,
         "✨ *Bouijee Bot Meny* ✨\n\n"
