@@ -444,15 +444,15 @@ def handle_callback(call):
 
 # === Skicka signal ===
 def send_signal(action, symbol="EURUSD", chat_id=None):
-    # Använd svensk lokal tid (UTC+2 på sommartid)
+    # Använd svensk lokal tid
     se_tz = timezone("Europe/Stockholm")
     entry_time = datetime.now(se_tz) + timedelta(minutes=20)
     entry_str = entry_time.strftime("%H:%M")
 
-    # Lägg till signal i väntelistan för påminnelser
+    # Lägg till signalen med korrekt entry_time för interna påminnelser (i UTC)
     pending_signals.append({
         'user_id': chat_id,
-        'entry_time': entry_time.astimezone(timezone("UTC")),  # används för jämförelse i reminder_loop()
+        'entry_time': entry_time.astimezone(timezone("UTC")),  # för jämförelse i reminder-loop
         'symbol': symbol,
         'action': action,
         'confirmed': False,
@@ -461,19 +461,18 @@ def send_signal(action, symbol="EURUSD", chat_id=None):
         'reminder_1': False
     })
 
-    # Knappar
-    markup = InlineKeyboardMarkup()
-    markup.add(
-        InlineKeyboardButton("✅✅✅", callback_data="accept"),
-        InlineKeyboardButton("❌❌❌", callback_data="decline")
-    )
-
-    # Bouijee-style meddelande
+    # Behåll nuvarande meddelandestil
     message_text = (
         f"🔥 *MONEY RAIN* 🔥\n\n"
         f"{'💚' if action.upper() == 'BUY' else '💔'} *{action.upper()} {symbol}*\n"
         f"⏰ Entry: *{entry_str}*\n\n"
         "Take it or leave it 💅🏼"
+    )
+
+    markup = InlineKeyboardMarkup()
+    markup.add(
+        InlineKeyboardButton("✅✅✅", callback_data="accept"),
+        InlineKeyboardButton("❌❌❌", callback_data="decline")
     )
 
     bot.send_message(chat_id=chat_id, text=message_text, reply_markup=markup, parse_mode="Markdown")
