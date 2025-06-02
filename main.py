@@ -45,8 +45,8 @@ def register_user_if_not_exists(telegram_id):
             return  # Redan registrerad
 
     # Lägg till ny användare med alla standardvärden
-    today = datetime.now().strftime("%Y-%m-%d")
-    sheet.append_row([telegram_id, 1000, "Ej angiven", today, 0, 0])  # TotalVinst och WinRate
+    today = datetime.now().strftime("%Y-%m-%d")  # Registrerad
+    sheet.append_row([telegram_id, 1000, "Ej angiven", today, 0, 0, "Standard"])
     
 import json
 
