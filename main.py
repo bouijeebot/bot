@@ -159,6 +159,9 @@ def send_welcome(message):
         InlineKeyboardButton("📲 App Store", url="https://apps.apple.com/app/metatrader-4/id496212596"),
         InlineKeyboardButton("📲 Google Play", url="https://play.google.com/store/apps/details?id=net.metaquotes.metatrader4")
     )
+    markup.add(
+        InlineKeyboardButton("✨NU KÖR VI✨", callback_data="demo_signal")
+    )
     
     bot.send_message(
         message.chat.id,
