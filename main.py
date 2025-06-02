@@ -181,19 +181,39 @@ def send_welcome(message):
         markup = InlineKeyboardMarkup()
         markup.add(InlineKeyboardButton("✨NU KÖR VI!✨", callback_data="demo_signal"))
 
-        bot.send_message(
-            message.chat.id,
-            "Heeey din katt! 😻✨\n\n"
-            "Jag är *Bouijee Bot* – din fab trading-bestie som sniffar pengar snabbare än du hittar dina klackar en lördagkväll. 👠💸\n\n"
-            "*Let’s get rich – men make it fabulous.*\n\n"
-            "👉 Du kan skriva /meny när som helst för att återgå till menyn.",
-            reply_markup=markup,
-            parse_mode="Markdown"
-        )
+        from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+@bot.message_handler(commands=["start"])
+def send_welcome(message):
+    markup = InlineKeyboardMarkup()
+    markup.add(
+        InlineKeyboardButton("📲 Ladda ner MT4 – App Store", url="https://apps.apple.com/app/metatrader-4/id496212596"),
+        InlineKeyboardButton("📲 Ladda ner MT4 – Google Play", url="https://play.google.com/store/apps/details?id=net.metaquotes.metatrader4")
+    )
+    
+    bot.send_message(
+        message.chat.id,
+        "Heeey din katt! 😻✨\n\n"
+        "Jag är *Bouijee Bot* – din fab trading-bestie som sniffar pengar snabbare än du hittar dina klackar en lördagkväll. 👠💸\n\n"
+        "När jag säger *BUY💚* eller *SELL💔*, så bör signalen accepteras inom rätt tid för bästa resultat. 📉📈\n\n"
+        "Så häll upp ett glas bubbel 🥂, luta dig tillbaka, och låt mig servera dig signaler med mer precision än din eyeliner.\n\n"
+        "💼 Du kommer att behöva *MetaTrader 4* – finns att ladda ner här 👇\n\n"
+        "*Let’s get rich – men make it fabulous.*\n\n"
+        "Xoxo NU KÖR VI! 💃🏽\n\n"
+        "👉 Du kan skriva /meny när som helst för att återgå till menyn.",
+        reply_markup=markup,
+        parse_mode="Markdown"
+    )
 
 @bot.callback_query_handler(func=lambda call: call.data == "koppla_mt4")
 def prompt_mt4_id(call):
-    msg = bot.send_message(call.message.chat.id, "Skriv in ditt *MT4-ID* här, babe 💼:", parse_mode="Markdown")
+    msg = bot.send_message(
+        call.message.chat.id,
+        "*Skriv in ditt MT4-ID här, babe💼*\n\n"
+        "🔎 Du hittar det genom att öppna MT4-appen, klicka på ’Inställningar’ ⚙️ och sedan ’Konto’.\n"
+        "Kopiera det nummer som står högst upp – det är ditt ID 💋",
+        parse_mode="Markdown"
+    )
     bot.register_next_step_handler(msg, save_mt4_id)
 
 # === /meny ===
