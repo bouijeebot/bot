@@ -685,7 +685,6 @@ start_signal_loop()
 
 # Starta resultatovervakning och påminnelser
 check_signals_result()
-check_for_missing_results()
 
 # === Starta på Render ===
 if __name__ == "__main__":
