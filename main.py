@@ -150,37 +150,6 @@ def save_mt4_id(message):
         bot.send_message(message.chat.id, "Något gick snett när vi skulle spara ditt MT4-ID 😢 Testa igen om en stund.")
 
 # === /start ===
-@bot.message_handler(commands=["start"])
-def send_welcome(message):
-    telegram_id = str(message.from_user.id)
-    register_user_if_not_exists(telegram_id)
-
-    creds = get_credentials()
-    sheet = gspread.authorize(creds).open_by_key(SHEET_ID).worksheet("Users")
-    all_data = sheet.get_all_records()
-
-    mt4_id = None
-    for row in all_data:
-        if str(row.get("Telegram-ID")) == telegram_id:
-            mt4_id = row.get("MT4-ID")
-            break
-
-    if not mt4_id or mt4_id.strip() == "":
-        # Visa MT4-kopplingsknapp
-        markup = InlineKeyboardMarkup()
-        markup.add(InlineKeyboardButton("🔗 Koppla ditt MT4-ID", callback_data="koppla_mt4"))
-        bot.send_message(
-            message.chat.id,
-            "Välkommen till *Bouijee Bot*! 💋\n\n"
-            "För att börja ta emot signaler behöver du först koppla ditt MT4-ID 📈👇",
-            reply_markup=markup,
-            parse_mode="Markdown"
-        )
-    else:
-        # Visa vanliga startmenyn
-        markup = InlineKeyboardMarkup()
-        markup.add(InlineKeyboardButton("✨NU KÖR VI!✨", callback_data="demo_signal"))
-
         from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 @bot.message_handler(commands=["start"])
