@@ -156,8 +156,8 @@ def save_mt4_id(message):
 def send_welcome(message):
     markup = InlineKeyboardMarkup()
     markup.add(
-        InlineKeyboardButton("📲 Ladda ner MT4 – App Store", url="https://apps.apple.com/app/metatrader-4/id496212596"),
-        InlineKeyboardButton("📲 Ladda ner MT4 – Google Play", url="https://play.google.com/store/apps/details?id=net.metaquotes.metatrader4")
+        InlineKeyboardButton("📲 App Store", url="https://apps.apple.com/app/metatrader-4/id496212596"),
+        InlineKeyboardButton("📲 Google Play", url="https://play.google.com/store/apps/details?id=net.metaquotes.metatrader4")
     )
     
     bot.send_message(
