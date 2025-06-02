@@ -128,6 +128,26 @@ def update_user_risk(telegram_id, risk_level):
             sheet.update_cell(i + 1, 3, f"{risk_level}%")  # Risknivå finns i kolumn C (index 2, men +1 = 3)
             return
 
+def save_mt4_id(message):
+    telegram_id = str(message.from_user.id)
+    mt4_id = message.text.strip()
+
+    try:
+        creds = get_credentials()
+        sheet = gspread.authorize(creds).open_by_key(SHEET_ID).worksheet("Users")
+        all_values = sheet.get_all_values()
+
+        for i, row in enumerate(all_values):
+            if row[0] == telegram_id:
+                sheet.update_cell(i + 1, 3, mt4_id)  # Kolumn C = MT4-ID
+                break
+
+        bot.send_message(message.chat.id, f"MT4-ID *{mt4_id}* är nu kopplat – nice babes! ✨", parse_mode="Markdown")
+        show_menu(message)
+
+    except Exception as e:
+        bot.send_message(message.chat.id, "Något gick snett när vi skulle spara ditt MT4-ID 😢 Testa igen om en stund.")
+
 # === /start ===
 @bot.message_handler(commands=["start"])
 def send_welcome(message):
