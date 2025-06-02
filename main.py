@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 import threading
 import random
 import time
+from pytz import timezone
 
 # === Pending signals för påminnelser ===
 pending_signals = []
@@ -443,17 +444,15 @@ def handle_callback(call):
 
 # === Skicka signal ===
 def send_signal(action, symbol="EURUSD", chat_id=None):
-    from datetime import datetime, timedelta
+    # Använd svensk lokal tid (UTC+2 på sommartid)
+    se_tz = timezone("Europe/Stockholm")
+    entry_time = datetime.now(se_tz) + timedelta(minutes=20)
+    entry_str = entry_time.strftime("%H:%M")
 
-    # 20 minuter framåt från nu
-    entry_time_utc = datetime.utcnow() + timedelta(minutes=20)
-    entry_time_local = datetime.now() + timedelta(minutes=20)
-    entry_str = entry_time_local.strftime("%H:%M")
-
-    # Lägg till signal i väntelistan för påminnelse
+    # Lägg till signal i väntelistan för påminnelser
     pending_signals.append({
         'user_id': chat_id,
-        'entry_time': entry_time_utc,
+        'entry_time': entry_time.astimezone(timezone("UTC")),  # används för jämförelse i reminder_loop()
         'symbol': symbol,
         'action': action,
         'confirmed': False,
