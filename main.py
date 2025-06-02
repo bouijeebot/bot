@@ -217,7 +217,7 @@ def show_menu(message):
 
 def send_standby_button(chat_id):
     markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("💃🏽 Invänta signal", callback_data="standby"))
+    markup.add(InlineKeyboardButton("💃🏽 Aktivera signaler", callback_data="standby"))
     bot.send_message(chat_id, "Klicka för att börja ta emot signaler, darling!✨", reply_markup=markup)
     
 # === Menyknappar ===
@@ -256,7 +256,7 @@ def show_info(call):
 
     # Visa standby-knapp efter infon
     markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("💃🏽 Invänta signal", callback_data="standby"))
+    markup.add(InlineKeyboardButton("💃🏽 Aktivera signaler", callback_data="standby"))
     bot.send_message(
         call.message.chat.id,
         "När du är redo att glänsa, klicka här så väntar vi in nästa signal tillsammans!🫶🏼",
@@ -290,7 +290,7 @@ def handle_risk_selection(call):
 
     # Visa standby-knapp efter val
     markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("💃🏽 Invänta signal", callback_data="standby"))
+    markup.add(InlineKeyboardButton("💃🏽 Aktivera signaler", callback_data="standby"))
     bot.send_message(
         call.message.chat.id,
         "Redo för att få signaler direkt i din feed? Klicka här, babes!✅",
