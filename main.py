@@ -127,7 +127,7 @@ def update_user_risk(telegram_id, risk_level):
     all_values = sheet.get_all_values()
     for i, row in enumerate(all_values):
         if str(row[0]) == str(telegram_id):  # Telegram-ID finns i kolumn A (index 0)
-            sheet.update_cell(i + 1, 3, f"{risk_level}%")  # Risknivå finns i kolumn C (index 2, men +1 = 3)
+            sheet.update_cell(i + 1, 7, f"{risk_level}%")  # Risknivå finns i kolumn G (index 2, men +1 = 3)
             return
 
 def save_mt4_id(message):
