@@ -13,6 +13,7 @@ from pytz import timezone
 
 # === Pending signals för påminnelser ===
 pending_signals = []
+awaiting_balance_input = {}  
 
 # === Ladda miljövariabler ===
 load_dotenv()
@@ -139,12 +140,26 @@ def save_mt4_id(message):
         sheet = gspread.authorize(creds).open_by_key(SHEET_ID).worksheet("Users")
         all_values = sheet.get_all_values()
 
+        row_index = None
         for i, row in enumerate(all_values):
             if row[0] == telegram_id:
-                sheet.update_cell(i + 1, 3, mt4_id)  # Kolumn C = MT4-ID
+                row_index = i + 1  # eftersom get_all_values() börjar på rad 1
+                sheet.update_cell(row_index, 3, mt4_id)  # Kolumn C = MT4-ID
                 break
 
         bot.send_message(message.chat.id, f"MT4-ID *{mt4_id}* är nu kopplat – nice babes! ✨", parse_mode="Markdown")
+
+        # Kolla om användaren har angett startsaldo
+        balance_cell = f"B{row_index}"  # Kolumn B = Balance
+        current_balance = sheet.acell(balance_cell).value
+        if not current_balance:
+            awaiting_balance_input[telegram_id] = balance_cell
+            bot.send_message(
+                message.chat.id,
+                "Nu när du är kopplad – hur mycket kapital vill du starta med? 💰 Skriv bara summan (t.ex. 2000)"
+            )
+            return  # Vänta på att användaren anger saldo innan meny visas
+
         show_menu(message)
 
     except Exception as e:
@@ -589,6 +604,23 @@ def check_signals_result():
         print("Fel i check_signals_result:", e)
         threading.Timer(300, check_signals_result).start()
 
+@bot.message_handler(func=lambda m: str(m.from_user.id) in awaiting_balance_input)
+def handle_balance_input(message):
+    telegram_id = str(message.from_user.id)
+    text = message.text.strip()
+
+    try:
+        balance = float(text.replace(",", ".").replace(" ", ""))
+        balance_cell = awaiting_balance_input.pop(telegram_id)
+        creds = get_credentials()
+        sheet = gspread.authorize(creds).open_by_key(SHEET_ID).worksheet("Users")
+        sheet.update_acell(balance_cell, str(balance))
+        bot.send_message(message.chat.id, f"Toppen, vi har sparat ditt startsaldo som {balance} kr. Let’s slay these markets babe 💸")
+        show_menu(message)
+
+    except ValueError:
+        bot.send_message(message.chat.id, "Oops! Det där såg inte ut som en siffra. Försök igen 💵")
+        
 # === Text fallback ===
 @bot.message_handler(func=lambda message: True, content_types=['text'])
 def handle_unexpected_messages(message):
