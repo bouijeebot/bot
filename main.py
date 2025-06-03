@@ -110,7 +110,9 @@ def get_user_balance(telegram_id):
     sheet = gspread.authorize(creds).open_by_key(SHEET_ID).worksheet("Users")
     for row in sheet.get_all_records():
         if str(row.get("Telegram-ID")) == str(telegram_id):
-            return row.get("Saldo", "Ej angivet")
+            # Försök hämta både 'Balance' och 'Saldo' beroende på vad som används i arket
+            balance = row.get("Balance") or row.get("Saldo")
+            return balance if balance else "Ej angivet"
     return "Ej hittad"
 
 def get_user_risk(telegram_id):
