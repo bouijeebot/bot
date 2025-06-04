@@ -483,6 +483,23 @@ def send_signal(action, symbol="EURUSD", chat_id=None):
     bot.send_message(chat_id=chat_id, text=message_text, reply_markup=markup, parse_mode="Markdown")
 
 def auto_generate_signal():
+    # Använd svensk tid
+    se_tz = timezone("Europe/Stockholm")
+    now = datetime.now(se_tz)
+    weekday = now.weekday()
+    hour = now.hour
+    minute = now.minute
+
+    # Kolla om marknaden är stängd
+    if (
+        (weekday == 5) or  # Lördag
+        (weekday == 6 and hour < 23) or  # Söndag innan 23:00
+        (weekday == 4 and hour >= 22)    # Fredag efter 22:00
+    ):
+        print("📴 Marknaden är stängd – skickar inga signaler nu.")
+        return
+
+    # Fortsätt som vanligt om marknaden är öppen
     pairs = ["USDCHF", "EURCHF", "EURUSD", "USDJPY", "EURJPY", "GBPUSD", "XAUUSD", "GBPJPY"]
     actions = ["BUY", "SELL"]
     
