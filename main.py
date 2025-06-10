@@ -717,6 +717,8 @@ start_signal_loop()
 # Starta resultatovervakning och påminnelser
 check_signals_result()
 
+start_ai_signal_loop()
+
 # === Starta på Render ===
 if __name__ == "__main__":
     print("Bouijee Bot är igång...")
