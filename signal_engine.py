@@ -1,7 +1,6 @@
 import gspread
 from main import send_signal, get_credentials, SHEET_ID
 from datetime import datetime
-import time
 
 def generate_signals_and_dispatch():
     try:
@@ -20,7 +19,7 @@ def generate_signals_and_dispatch():
 
         action = latest.get("Signal", "").strip().upper()
         symbol = latest.get("Symbol", "GBPUSD").strip().upper()
-        timestamp = latest.get("Timestamp", "")
+        timestamp = latest.get("Timestamp", "okänt")
 
         if action not in ["BUY", "SELL"]:
             print(f"⚠️ Ogiltig signal: {action}")
@@ -31,7 +30,7 @@ def generate_signals_and_dispatch():
         users = user_sheet.get_all_records()
 
         for user in users:
-            chat_id = user.get("Telegram-ID")
+            chat_id = str(user.get("Telegram-ID", "")).strip()
             if chat_id:
                 try:
                     send_signal(action, symbol, chat_id)
