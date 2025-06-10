@@ -3,6 +3,9 @@ import numpy as np
 from datetime import datetime
 from ai_writer import write_ai_signal
 
+print(df.columns.tolist())
+exit()
+
 # === Läser CSV med OHLCV-data ===
 df = pd.read_csv("GBPUSD_1h.csv")
 
