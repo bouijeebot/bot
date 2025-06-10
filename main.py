@@ -568,6 +568,56 @@ def check_signals_result():
 
             already_notified.add((telegram_id, signal_text))
 
+def update_all_user_balances():
+    creds = get_credentials()
+    gc = gspread.authorize(creds)
+    
+    # Öppna båda blad
+    user_sheet = gc.open_by_key(SHEET_ID).worksheet("Users")
+    signal_sheet = gc.open_by_key(SHEET_ID).worksheet("Signals")
+
+    user_data = user_sheet.get_all_records()
+    signal_data = signal_sheet.get_all_records()
+
+    for i, user in enumerate(user_data):
+        telegram_id = str(user.get("Telegram-ID"))
+        if not telegram_id:
+            continue
+
+        try:
+            # Hämta nuvarande startsaldo
+            saldo = float(user.get("Balance", user.get("Saldo", 0)))
+        except:
+            saldo = 0
+
+        # Summera alla bekräftade profits
+        total_profit = 0
+        for row in signal_data:
+            if (
+                str(row.get("Telegram-ID")) == telegram_id and
+                str(row.get("Accepted", "")).strip().lower() == "yes"
+            ):
+                try:
+                    total_profit += float(row.get("Profit", 0))
+                except:
+                    continue
+
+        nytt_saldo = round(saldo + total_profit, 2)
+
+        # Uppdatera saldo i bladet
+        saldo_col = None
+        headers = user_sheet.row_values(1)
+        for idx, header in enumerate(headers):
+            if header.strip().lower() in ["balance", "saldo"]:
+                saldo_col = idx + 1
+                break
+
+        if saldo_col:
+            user_sheet.update_cell(i + 2, saldo_col, nytt_saldo)
+
+    print("✅ Alla användarsaldon har uppdaterats!")
+
+
         # 🔁 Valfritt: Uppdatera användares saldo (om funktionen finns)
         try:
             update_all_user_balances()
@@ -687,7 +737,7 @@ def start_signal_loops():
 
 
 # Starta signalgeneratorn
-start_signal_loops()
+start_ai_signal_loop()
 
 # Starta resultatovervakning och påminnelser
 check_signals_result()
