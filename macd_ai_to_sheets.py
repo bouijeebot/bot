@@ -4,7 +4,7 @@ from datetime import datetime
 from ai_writer import write_ai_signal
 
 # === Läser CSV med OHLCV-data ===
-df = pd.read_csv("your_forex_data.csv")
+df = pd.read_csv("GBPUSD_1h.csv")
 
 # === Skapa kolumn 'datetime' om inte finns ===
 if "datetime" not in df.columns and "Date" in df.columns:
