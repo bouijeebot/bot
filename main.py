@@ -13,6 +13,7 @@ from pytz import timezone
 
 # === Pending signals för påminnelser ===
 pending_signals = []
+awaiting_balance_input = {}  
 
 # === Ladda miljövariabler ===
 load_dotenv()
@@ -46,7 +47,7 @@ def register_user_if_not_exists(telegram_id):
 
     # Lägg till ny användare med alla standardvärden
     today = datetime.now().strftime("%Y-%m-%d")  # Registrerad
-    sheet.append_row([telegram_id, 1000, "1%", today, 0, 0, "Standard"])
+    sheet.append_row([telegram_id, "", "1%", today, 0, 0, "Standard"])
     
 import json
 
@@ -109,7 +110,10 @@ def get_user_balance(telegram_id):
     sheet = gspread.authorize(creds).open_by_key(SHEET_ID).worksheet("Users")
     for row in sheet.get_all_records():
         if str(row.get("Telegram-ID")) == str(telegram_id):
-            return row.get("Saldo", "Ej angivet")
+            for key in row:
+                if key.strip().lower() in ["balance", "saldo"]:
+                    value = row[key]
+                    return value if value else "Ej angivet"
     return "Ej hittad"
 
 def get_user_risk(telegram_id):
@@ -139,12 +143,26 @@ def save_mt4_id(message):
         sheet = gspread.authorize(creds).open_by_key(SHEET_ID).worksheet("Users")
         all_values = sheet.get_all_values()
 
+        row_index = None
         for i, row in enumerate(all_values):
             if row[0] == telegram_id:
-                sheet.update_cell(i + 1, 3, mt4_id)  # Kolumn C = MT4-ID
+                row_index = i + 1  # eftersom get_all_values() börjar på rad 1
+                sheet.update_cell(row_index, 3, mt4_id)  # Kolumn C = MT4-ID
                 break
 
         bot.send_message(message.chat.id, f"MT4-ID *{mt4_id}* är nu kopplat – nice babes! ✨", parse_mode="Markdown")
+
+        # Kolla om användaren har angett startsaldo
+        balance_cell = f"B{row_index}"  # Kolumn B = Balance
+        current_balance = sheet.acell(balance_cell).value
+        if not current_balance:
+            awaiting_balance_input[telegram_id] = balance_cell
+            bot.send_message(
+                message.chat.id,
+                "Nu när du är kopplad – hur mycket kapital vill du starta med? 💰 Skriv bara summan (t.ex. 2000)"
+            )
+            return  # Vänta på att användaren anger saldo innan meny visas
+
         show_menu(message)
 
     except Exception as e:
@@ -465,6 +483,23 @@ def send_signal(action, symbol="EURUSD", chat_id=None):
     bot.send_message(chat_id=chat_id, text=message_text, reply_markup=markup, parse_mode="Markdown")
 
 def auto_generate_signal():
+    # Använd svensk tid
+    se_tz = timezone("Europe/Stockholm")
+    now = datetime.now(se_tz)
+    weekday = now.weekday()
+    hour = now.hour
+    minute = now.minute
+
+    # Kolla om marknaden är stängd
+    if (
+        (weekday == 5) or  # Lördag
+        (weekday == 6 and hour < 23) or  # Söndag innan 23:00
+        (weekday == 4 and hour >= 22)    # Fredag efter 22:00
+    ):
+        print("📴 Marknaden är stängd – skickar inga signaler nu.")
+        return
+
+    # Fortsätt som vanligt om marknaden är öppen
     pairs = ["USDCHF", "EURCHF", "EURUSD", "USDJPY", "EURJPY", "GBPUSD", "XAUUSD", "GBPJPY"]
     actions = ["BUY", "SELL"]
     
@@ -492,6 +527,8 @@ def check_signals_result():
         sheet = gc.open_by_key(SHEET_ID).worksheet("Signals")
         rows = sheet.get_all_records()
 
+        already_notified = set()
+
         for row in reversed(rows):
             telegram_id = row.get("Telegram-ID")
             profit = row.get("Profit")
@@ -507,14 +544,15 @@ def check_signals_result():
             except:
                 continue
 
+            if (telegram_id, signal_text) in already_notified:
+                continue  # Undvik att skicka samma meddelande flera gånger
+
             # Hämta klockslag från timestamp
-            entry_time = ""
             try:
                 entry_time = row.get("Timestamp", "").split(" ")[1]
             except:
                 entry_time = "okänt"
 
-            # === Meddelande till den som bekräftade ===
             if accepted == "yes":
                 if profit > 0:
                     msg = f"✅ {signal_text} kl {entry_time} = +{profit} USD 🎉💰"
@@ -523,61 +561,75 @@ def check_signals_result():
                 else:
                     msg = f"✅ {signal_text} kl {entry_time} = ±0 USD 😐"
                 bot.send_message(chat_id=telegram_id, text=msg)
-
-            # === Meddelande till den som missade signalen ===
             else:
                 result = "WIN🏆" if profit > 0 else "LOSS💀"
                 msg = f"❌ Missad signal: {signal_text} kl {entry_time} = {result}"
                 bot.send_message(chat_id=telegram_id, text=msg)
 
+            already_notified.add((telegram_id, signal_text))
+
+def update_all_user_balances():
+    creds = get_credentials()
+    gc = gspread.authorize(creds)
+    
+    # Öppna båda blad
+    user_sheet = gc.open_by_key(SHEET_ID).worksheet("Users")
+    signal_sheet = gc.open_by_key(SHEET_ID).worksheet("Signals")
+
+    user_data = user_sheet.get_all_records()
+    signal_data = signal_sheet.get_all_records()
+
+    for i, user in enumerate(user_data):
+        telegram_id = str(user.get("Telegram-ID"))
+        if not telegram_id:
+            continue
+
+        try:
+            # Hämta nuvarande startsaldo
+            saldo = float(user.get("Balance", user.get("Saldo", 0)))
+        except:
+            saldo = 0
+
+        # Summera alla bekräftade profits
+        total_profit = 0
+        for row in signal_data:
+            if (
+                str(row.get("Telegram-ID")) == telegram_id and
+                str(row.get("Accepted", "")).strip().lower() == "yes"
+            ):
+                try:
+                    total_profit += float(row.get("Profit", 0))
+                except:
+                    continue
+
+        nytt_saldo = round(saldo + total_profit, 2)
+
+        # Uppdatera saldo i bladet
+        saldo_col = None
+        headers = user_sheet.row_values(1)
+        for idx, header in enumerate(headers):
+            if header.strip().lower() in ["balance", "saldo"]:
+                saldo_col = idx + 1
+                break
+
+        if saldo_col:
+            user_sheet.update_cell(i + 2, saldo_col, nytt_saldo)
+
+    print("✅ Alla användarsaldon har uppdaterats!")
+
+
+        # 🔁 Valfritt: Uppdatera användares saldo (om funktionen finns)
+        try:
+            update_all_user_balances()
+        except Exception as e:
+            print("⚠️ Kunde inte uppdatera saldon:", e)
+
+        # Kör igen efter 5 minuter
         threading.Timer(300, check_signals_result).start()
 
     except Exception as e:
         print("Fel i check_signals_result:", e)
         threading.Timer(300, check_signals_result).start()
-
-# === Automatiskt notifiera resultat ===
-def check_signals_result():
-    try:
-        creds = get_credentials()
-        gc = gspread.authorize(creds)
-        sheet = gc.open_by_key(SHEET_ID).worksheet("Signals")
-        rows = sheet.get_all_records()
-
-        for row in reversed(rows):
-            telegram_id = row.get("Telegram-ID")
-            profit = row.get("Profit")
-            accepted = row.get("Accepted", "").strip().lower()
-            signal_text = row.get("Signal", "").strip()
-
-            if not telegram_id or profit == "":
-                continue
-
-            try:
-                profit = float(profit)
-                telegram_id = int(telegram_id)
-            except:
-                continue
-
-            # Hämta klockslag från timestamp
-            entry_time = ""
-            try:
-                entry_time = row.get("Timestamp", "").split(" ")[1]
-            except:
-                entry_time = "okänt"
-
-            if accepted == "yes":
-                if profit > 0:
-                    msg = f"✅ {signal_text} kl {entry_time} = +{profit} USD 🎉💰"
-                elif profit < 0:
-                    msg = f"✅ {signal_text} kl {entry_time} = {profit} USD 😵💔"
-                else:
-                    msg = f"✅ {signal_text} kl {entry_time} = ±0 USD 😐"
-                bot.send_message(chat_id=telegram_id, text=msg)
-            else:
-                result = "WIN🏆" if profit > 0 else "LOSS💀"
-                msg = f"❌ Missad signal: {signal_text} kl {entry_time} = {result}"
-                bot.send_message(chat_id=telegram_id, text=msg)
 
         # ✅ Lägg till detta för att uppdatera saldon
         update_all_user_balances()
@@ -589,6 +641,23 @@ def check_signals_result():
         print("Fel i check_signals_result:", e)
         threading.Timer(300, check_signals_result).start()
 
+@bot.message_handler(func=lambda m: str(m.from_user.id) in awaiting_balance_input)
+def handle_balance_input(message):
+    telegram_id = str(message.from_user.id)
+    text = message.text.strip()
+
+    try:
+        balance = float(text.replace(",", ".").replace(" ", ""))
+        balance_cell = awaiting_balance_input.pop(telegram_id)
+        creds = get_credentials()
+        sheet = gspread.authorize(creds).open_by_key(SHEET_ID).worksheet("Users")
+        sheet.update_acell(balance_cell, str(balance))
+        bot.send_message(message.chat.id, f"Toppen, vi har sparat ditt startsaldo som {balance} kr. Let’s slay these markets babe 💸")
+        show_menu(message)
+
+    except ValueError:
+        bot.send_message(message.chat.id, "Oops! Det där såg inte ut som en siffra. Försök igen 💵")
+        
 # === Text fallback ===
 @bot.message_handler(func=lambda message: True, content_types=['text'])
 def handle_unexpected_messages(message):
@@ -639,21 +708,65 @@ reminder_thread = threading.Thread(target=reminder_loop)
 reminder_thread.daemon = True
 reminder_thread.start()
 
-def start_signal_loop():
-    def loop():
-        while True:
-            auto_generate_signal()
-            time.sleep(3600)  # 60 minuter
+def start_signal_loops():
+    import threading
+    import time
+    from signal_engine import generate_signals_and_dispatch
 
-    thread = threading.Thread(target=loop)
-    thread.daemon = True
-    thread.start()
+    def demo_loop():
+        while True:
+            try:
+                auto_generate_signal()
+            except Exception as e:
+                print(f"🚨 Fel i demo_loop: {e}")
+            time.sleep(3600)  # Varje timme
+
+    def ai_loop():
+        while True:
+            try:
+                generate_signals_and_dispatch()
+            except Exception as e:
+                print(f"🚨 Fel i ai_loop: {e}")
+            time.sleep(3600)  # Varje timme
+
+    demo_thread = threading.Thread(target=demo_loop, daemon=True)
+    ai_thread = threading.Thread(target=ai_loop, daemon=True)
+
+    demo_thread.start()
+    ai_thread.start()
+
 
 # Starta signalgeneratorn
-start_signal_loop()
+start_ai_signal_loop()
 
 # Starta resultatovervakning och påminnelser
 check_signals_result()
+
+def start_ai_signal_loop():
+    import os
+    import time
+    from convert_to_1h import convert_m1_to_1h
+    from macd_ai_to_sheets import run_macd_strategy
+
+    def loop():
+        while True:
+            try:
+                # 🟡 Konvertera CSV till 1H-data
+                convert_m1_to_1h("DAT_ASCII_GBPUSD_M1_2024.csv", "GBPUSD_1h.csv")
+
+                # 🟢 Kör AI-signalstrategi
+                run_macd_strategy("GBPUSD_1h.csv", "GBPUSD")
+                print("✅ AI-signal genererad och sparad till Google Sheets")
+
+            except Exception as e:
+                print("❌ AI-signalloop error:", e)
+
+            time.sleep(3600)  # kör varje timme
+
+    import threading
+    thread = threading.Thread(target=loop)
+    thread.daemon = True
+    thread.start()
 
 # === Starta på Render ===
 if __name__ == "__main__":
