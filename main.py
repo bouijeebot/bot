@@ -752,7 +752,7 @@ def start_ai_signal_loop():
         while True:
             try:
                 # 🟡 Konvertera CSV till 1H-data
-                convert_m1_to_1h("DAT_ASCII_GBPUSD_M1_2024.csv", "GBPUSD_1h.csv")
+                convert_m1_to_1h("DAT_ASCII_GBPUSD_M1_ALL.csv", "GBPUSD_1h.csv")
 
                 # 🟢 Kör AI-signalstrategi
                 run_macd_strategy("GBPUSD_1h.csv", "GBPUSD")
