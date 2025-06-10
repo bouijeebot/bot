@@ -1,10 +1,12 @@
 import pandas as pd
+
+df = pd.read_csv("GBPUSD_1h.csv")  # eller med sep=";" om det behövs
+print("🧪 Kolumner i CSV-filen:", df.columns.tolist())
+exit()  # stoppa här tillfälligt så du ser resultatet
+
 import numpy as np
 from datetime import datetime
 from ai_writer import write_ai_signal
-
-print(df.columns.tolist())
-exit()
 
 # === Läser CSV med OHLCV-data ===
 df = pd.read_csv("GBPUSD_1h.csv")
