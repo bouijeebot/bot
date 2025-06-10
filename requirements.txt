@@ -4,3 +4,4 @@ google-auth
 pyTelegramBotAPI
 Flask
 pytz
+pandas
