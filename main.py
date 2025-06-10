@@ -491,13 +491,20 @@ def check_signals_result():
         sheet = gc.open_by_key(SHEET_ID).worksheet("Signals")
         rows = sheet.get_all_records()
 
-        already_notified = set()
+        notified_col_index = 10  # Kolumn J = Notified
+        notified_cells = sheet.range(f"J2:J{len(rows)+1}")  # Rad 2 till slutet
 
-        for row in reversed(rows):
+        for idx, row in enumerate(reversed(rows)):
+            row_index = len(rows) - idx - 1  # För att matcha originalindex
+
             telegram_id = row.get("Telegram-ID")
             profit = row.get("Profit")
             accepted = row.get("Accepted", "").strip().lower()
             signal_text = row.get("Signal", "").strip()
+            already_notified = row.get("Notified", "").strip().lower()
+
+            if already_notified == "yes":
+                continue  # Hoppa över redan notifierade
 
             if not telegram_id or profit == "":
                 continue
@@ -508,19 +515,17 @@ def check_signals_result():
             except:
                 continue
 
-            if (telegram_id, signal_text) in already_notified:
-                continue
-
             try:
                 entry_time = row.get("Timestamp", "").split(" ")[1]
             except:
                 entry_time = "okänt"
 
+            # === Skicka meddelande beroende på accepted/result ===
             if accepted == "yes":
                 if profit > 0:
-                    msg = f"💸 {signal_text} kl {entry_time} = +{profit} USD 🎉 Money queen!"
+                    msg = f"💸 {signal_text} kl {entry_time} = +{profit} USD 🎉 Money wagon incoming!"
                 elif profit < 0:
-                    msg = f"💔 {signal_text} kl {entry_time} = {profit} USD 😵 Jikes..."
+                    msg = f"💔 {signal_text} kl {entry_time} = {profit} USD 😵 Jikes... Nästa tar vi!"
                 else:
                     msg = f"😐 {signal_text} kl {entry_time} = ±0 USD – Phew, det var nära ögat!"
                 bot.send_message(chat_id=telegram_id, text=msg)
@@ -529,7 +534,11 @@ def check_signals_result():
                 msg = f"❌ Du missade {signal_text} kl {entry_time} = {result}. Vi tar nästa babes 💅"
                 bot.send_message(chat_id=telegram_id, text=msg)
 
-            already_notified.add((telegram_id, signal_text))
+            # ✅ Markera raden som notifierad
+            notified_cells[row_index].value = "Yes"
+
+        # Uppdatera hela kolumnen på en gång (effektivare)
+        sheet.update_cells(notified_cells)
 
         # 🧮 Uppdatera saldon
         try:
