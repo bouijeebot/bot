@@ -482,43 +482,6 @@ def send_signal(action, symbol="EURUSD", chat_id=None):
     )
 
     bot.send_message(chat_id=chat_id, text=message_text, reply_markup=markup, parse_mode="Markdown")
-
-def auto_generate_signal():
-    # Använd svensk tid
-    se_tz = timezone("Europe/Stockholm")
-    now = datetime.now(se_tz)
-    weekday = now.weekday()
-    hour = now.hour
-    minute = now.minute
-
-    # Kolla om marknaden är stängd
-    if (
-        (weekday == 5) or  # Lördag
-        (weekday == 6 and hour < 23) or  # Söndag innan 23:00
-        (weekday == 4 and hour >= 22)    # Fredag efter 22:00
-    ):
-        print("📴 Marknaden är stängd – skickar inga signaler nu.")
-        return
-
-    # Fortsätt som vanligt om marknaden är öppen
-    pairs = ["USDCHF", "EURCHF", "EURUSD", "USDJPY", "EURJPY", "GBPUSD", "XAUUSD", "GBPJPY"]
-    actions = ["BUY", "SELL"]
-    
-    chosen_pair = random.choice(pairs)
-    chosen_action = random.choice(actions)
-
-    creds = get_credentials()
-    gc = gspread.authorize(creds)
-    sheet = gc.open_by_key(SHEET_ID).worksheet("Users")
-    users = sheet.get_all_records()
-
-    for user in users:
-        chat_id = user.get("Telegram-ID")
-        if chat_id:
-            try:
-                send_signal(chosen_action, chosen_pair, chat_id)
-            except Exception as e:
-                print(f"Misslyckades att skicka signal till {chat_id}: {e}")
                 
 # === Automatiskt notifiera resultat ===
 def check_signals_result():
