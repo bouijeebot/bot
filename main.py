@@ -697,26 +697,15 @@ def start_signal_loops():
     import time
     from signal_engine import generate_signals_and_dispatch
 
-    def demo_loop():
-        while True:
-            try:
-                auto_generate_signal()
-            except Exception as e:
-                print(f"🚨 Fel i demo_loop: {e}")
-            time.sleep(3600)  # Varje timme
-
     def ai_loop():
         while True:
             try:
                 generate_signals_and_dispatch()
             except Exception as e:
                 print(f"🚨 Fel i ai_loop: {e}")
-            time.sleep(3600)  # Varje timme
+            time.sleep(3600)  # Kör varje timme
 
-    demo_thread = threading.Thread(target=demo_loop, daemon=True)
     ai_thread = threading.Thread(target=ai_loop, daemon=True)
-
-    demo_thread.start()
     ai_thread.start()
 
 def start_ai_signal_loop():
