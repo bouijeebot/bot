@@ -692,22 +692,6 @@ reminder_thread = threading.Thread(target=reminder_loop)
 reminder_thread.daemon = True
 reminder_thread.start()
 
-def start_signal_loops():
-    import threading
-    import time
-    from signal_engine import generate_signals_and_dispatch
-
-    def ai_loop():
-        while True:
-            try:
-                generate_signals_and_dispatch()
-            except Exception as e:
-                print(f"🚨 Fel i ai_loop: {e}")
-            time.sleep(3600)  # Kör varje timme
-
-    ai_thread = threading.Thread(target=ai_loop, daemon=True)
-    ai_thread.start()
-
 def start_ai_signal_loop():
     import os
     import time
