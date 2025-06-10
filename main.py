@@ -10,7 +10,6 @@ import threading
 import random
 import time
 from pytz import timezone
-from signal_engine import generate_signals_and_dispatch
 
 # === Pending signals för påminnelser ===
 pending_signals = []
@@ -35,6 +34,11 @@ def receive_update():
     update = telebot.types.Update.de_json(json_str)
     bot.process_new_updates([update])
     return "", 200
+
+@app.route("/generate", methods=["POST"])
+def run_signal_engine():
+    from signal_engine import generate_signals_and_dispatch  # <-- Lägg in här istället
+    return generate_signals_and_dispatch()
 
 # === Google Sheets funktioner ===
 def register_user_if_not_exists(telegram_id):
