@@ -555,33 +555,35 @@ def check_signals_result():
 
             if accepted == "yes":
                 if profit > 0:
-                    msg = f"✅ {signal_text} kl {entry_time} = +{profit} USD 🎉💰"
+                    msg = f"💸 {signal_text} kl {entry_time} = +{profit} USD 🎉 Money queen!"
                 elif profit < 0:
-                    msg = f"✅ {signal_text} kl {entry_time} = {profit} USD 😵💔"
+                    msg = f"💔 {signal_text} kl {entry_time} = {profit} USD 😵 Jikes..."
                 else:
-                    msg = f"✅ {signal_text} kl {entry_time} = ±0 USD 😐"
+                    msg = f"😐 {signal_text} kl {entry_time} = ±0 USD – Phew, det var nära ögat!"
                 bot.send_message(chat_id=telegram_id, text=msg)
             else:
-                result = "WIN🏆" if profit > 0 else "LOSS💀"
-                msg = f"❌ Missad signal: {signal_text} kl {entry_time} = {result}"
+                result = "🏆 WIN" if profit > 0 else "💀 LOSS"
+                msg = f"❌ Du missade {signal_text} kl {entry_time} = {result}. Vi tar nästa babes 💅"
                 bot.send_message(chat_id=telegram_id, text=msg)
 
             already_notified.add((telegram_id, signal_text))
 
-        # ✅ Uppdatera användarsaldon
-        update_all_user_balances()
+        # 🧮 Uppdatera saldon
+        try:
+            update_all_user_balances()
+        except Exception as e:
+            print("⚠️ Kunde inte uppdatera saldon:", e)
 
     except Exception as e:
         print("Fel i check_signals_result:", e)
 
-    # 🕒 Kör igen om 5 minuter
+    # 🔁 Kör igen om 5 minuter
     threading.Timer(300, check_signals_result).start()
 
 def update_all_user_balances():
     creds = get_credentials()
     gc = gspread.authorize(creds)
-    
-    # Öppna båda blad
+
     user_sheet = gc.open_by_key(SHEET_ID).worksheet("Users")
     signal_sheet = gc.open_by_key(SHEET_ID).worksheet("Signals")
 
@@ -594,12 +596,10 @@ def update_all_user_balances():
             continue
 
         try:
-            # Hämta nuvarande startsaldo
             saldo = float(user.get("Balance", user.get("Saldo", 0)))
         except:
             saldo = 0
 
-        # Summera alla bekräftade profits
         total_profit = 0
         for row in signal_data:
             if (
@@ -613,9 +613,8 @@ def update_all_user_balances():
 
         nytt_saldo = round(saldo + total_profit, 2)
 
-        # Uppdatera saldo i bladet
-        saldo_col = None
         headers = user_sheet.row_values(1)
+        saldo_col = None
         for idx, header in enumerate(headers):
             if header.strip().lower() in ["balance", "saldo"]:
                 saldo_col = idx + 1
@@ -625,30 +624,6 @@ def update_all_user_balances():
             user_sheet.update_cell(i + 2, saldo_col, nytt_saldo)
 
     print("✅ Alla användarsaldon har uppdaterats!")
-
-
-        # 🔁 Valfritt: Uppdatera användares saldo (om funktionen finns)
-        try:
-            update_all_user_balances()
-        except Exception as e:
-            print("⚠️ Kunde inte uppdatera saldon:", e)
-
-        # Kör igen efter 5 minuter
-        threading.Timer(300, check_signals_result).start()
-
-    except Exception as e:
-        print("Fel i check_signals_result:", e)
-        threading.Timer(300, check_signals_result).start()
-
-        # ✅ Lägg till detta för att uppdatera saldon
-        update_all_user_balances()
-
-        # Kör igen om 5 minuter
-        threading.Timer(300, check_signals_result).start()
-
-    except Exception as e:
-        print("Fel i check_signals_result:", e)
-        threading.Timer(300, check_signals_result).start()
 
 @bot.message_handler(func=lambda m: str(m.from_user.id) in awaiting_balance_input)
 def handle_balance_input(message):
