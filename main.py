@@ -701,6 +701,16 @@ def start_signal_loop():
     thread.daemon = True
     thread.start()
 
+def start_ai_signal_loop():
+    def loop():
+        from signal_engine import generate_signals_and_dispatch
+        while True:
+            generate_signals_and_dispatch()
+            time.sleep(3600)  # kör varje timme
+    thread = threading.Thread(target=loop)
+    thread.daemon = True
+    thread.start()
+
 # Starta signalgeneratorn
 start_signal_loop()
 
