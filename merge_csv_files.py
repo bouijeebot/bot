@@ -1,20 +1,28 @@
 import pandas as pd
 import os
 
-# Lista alla år
-years = ["2020", "2021", "2022", "2023", "2024"]
-dfs = []
+# Lista över CSV-filer i rätt ordning
+filnamn = [
+    "DAT_ASCII_GBPUSD_M1_2020.csv",
+    "DAT_ASCII_GBPUSD_M1_2021.csv",
+    "DAT_ASCII_GBPUSD_M1_2022.csv",
+    "DAT_ASCII_GBPUSD_M1_2023.csv",
+    "DAT_ASCII_GBPUSD_M1_2024.csv",
+]
 
-for year in years:
-    filename = f"DAT_ASCII_GBPUSD_M1_{year}.csv"
-    if os.path.exists(filename):
-        print(f"Laddar {filename}")
-        df = pd.read_csv(filename, header=None)
-        dfs.append(df)
+dataframes = []
+
+for fil in filnamn:
+    if os.path.exists(fil):
+        print(f"✅ Läser in {fil}")
+        df = pd.read_csv(fil, header=None, names=["datetime", "open", "high", "low", "close", "volume"])
+        dataframes.append(df)
     else:
-        print(f"⚠️ Fil saknas: {filename}")
+        print(f"⚠️ Fil saknas: {fil}")
 
-# Slå ihop och spara
-combined_df = pd.concat(dfs)
-combined_df.to_csv("DAT_ASCII_GBPUSD_M1_ALL.csv", index=False, header=False)
-print("✅ Alla CSV-filer har kombinerats till DAT_ASCII_GBPUSD_M1_ALL.csv")
+# Slå ihop filerna
+sammanlagt_df = pd.concat(dataframes)
+
+# Spara till en enda fil
+sammanlagt_df.to_csv("GBPUSD_2019_2024_M1.csv", index=False)
+print("🎉 Klar! All data sparad i 'GBPUSD_2019_2024_M1.csv'")
