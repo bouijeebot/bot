@@ -691,33 +691,65 @@ reminder_thread = threading.Thread(target=reminder_loop)
 reminder_thread.daemon = True
 reminder_thread.start()
 
-def start_signal_loop():
-    def loop():
-        while True:
-            auto_generate_signal()
-            time.sleep(3600)  # 60 minuter
+def start_signal_loops():
+    import threading
+    import time
+    from signal_engine import generate_signals_and_dispatch
 
-    thread = threading.Thread(target=loop)
-    thread.daemon = True
-    thread.start()
-
-def start_ai_signal_loop():
-    def loop():
-        from signal_engine import generate_signals_and_dispatch
+    def demo_loop():
         while True:
-            generate_signals_and_dispatch()
-            time.sleep(3600)  # kör varje timme
-    thread = threading.Thread(target=loop)
-    thread.daemon = True
-    thread.start()
+            try:
+                auto_generate_signal()
+            except Exception as e:
+                print(f"🚨 Fel i demo_loop: {e}")
+            time.sleep(3600)  # Varje timme
+
+    def ai_loop():
+        while True:
+            try:
+                generate_signals_and_dispatch()
+            except Exception as e:
+                print(f"🚨 Fel i ai_loop: {e}")
+            time.sleep(3600)  # Varje timme
+
+    demo_thread = threading.Thread(target=demo_loop, daemon=True)
+    ai_thread = threading.Thread(target=ai_loop, daemon=True)
+
+    demo_thread.start()
+    ai_thread.start()
+
 
 # Starta signalgeneratorn
-start_signal_loop()
+start_signal_loops()
 
 # Starta resultatovervakning och påminnelser
 check_signals_result()
 
-start_ai_signal_loop()
+def start_ai_signal_loop():
+    import os
+    import time
+    from convert_to_1h import convert_m1_to_1h
+    from macd_ai_to_sheets import run_macd_strategy
+
+    def loop():
+        while True:
+            try:
+                # 🟡 Konvertera CSV till 1H-data
+                convert_m1_to_1h("DAT_ASCII_GBPUSD_M1_2024.csv", "GBPUSD_1h.csv")
+
+                # 🟢 Kör AI-signalstrategi
+                run_macd_strategy("GBPUSD_1h.csv", "GBPUSD")
+                print("✅ AI-signal genererad och sparad till Google Sheets")
+
+            except Exception as e:
+                print("❌ AI-signalloop error:", e)
+
+            time.sleep(3600)  # kör varje timme
+
+    import threading
+    thread = threading.Thread(target=loop)
+    thread.daemon = True
+    thread.start()
 
 # === Starta på Render ===
 if __name__ == "__main__":
