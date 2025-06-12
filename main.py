@@ -1,4 +1,3 @@
-from flask import Flask, request
 import os
 from dotenv import load_dotenv
 import telebot
@@ -22,18 +21,6 @@ SHEET_ID = os.getenv("SHEET_ID")
 GOOGLE_CREDENTIALS_FILE = "credentials.json"
 
 bot = telebot.TeleBot(TOKEN)
-app = Flask(__name__)
-
-@app.route("/", methods=["GET"])
-def home():
-    return "Bouijee Bot är igång!", 200
-
-@app.route("/", methods=["POST"])
-def receive_update():
-    json_str = request.get_data().decode("UTF-8")
-    update = telebot.types.Update.de_json(json_str)
-    bot.process_new_updates([update])
-    return "", 200
 
 @app.route("/generate", methods=["POST"])
 def run_signal_engine():
@@ -702,10 +689,5 @@ check_signals_result()
 if __name__ == "__main__":
     print("Bouijee Bot är igång...")
 
-    # Ta bort eventuell gammal webhook och sätt ny
-    bot.remove_webhook()
-    bot.set_webhook(url="https://bot-0xdn.onrender.com/")  # 🔁 Ändra till din faktiska Render-URL om den byts
-
-    # Starta Flask med rätt port och IP för Render
-    port = int(os.environ.get("PORT", 5000))  # Render sätter PORT som env-variabel
-    app.run(host="0.0.0.0", port=port)
+    # Starta polling
+    bot.polling(none_stop=True)
