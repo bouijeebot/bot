@@ -5,7 +5,7 @@ import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 import gspread
 from google.oauth2.service_account import Credentials
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import threading
 import random
 import time
@@ -136,7 +136,7 @@ def update_user_risk(telegram_id, risk_level):
     all_values = sheet.get_all_values()
     for i, row in enumerate(all_values):
         if str(row[0]) == str(telegram_id):  # Telegram-ID finns i kolumn A (index 0)
-            sheet.update_cell(i + 1, 7, f"{risk_level}%")  # Risknivå finns i kolumn G (index 2, men +1 = 3)
+            sheet.update_cell(i + 1, 7, f"{risk_level}%")  # Kolumn G = Risknivå (index 7)
             return
 
 def save_mt4_id(message):
@@ -629,7 +629,7 @@ def handle_unexpected_messages(message):
     
 def reminder_loop():
     while True:
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         for signal in pending_signals:
             if signal['confirmed']:
