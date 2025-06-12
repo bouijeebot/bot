@@ -174,8 +174,6 @@ def save_mt4_id(message):
         bot.send_message(message.chat.id, "Något gick snett när vi skulle spara ditt MT4-ID 😢 Testa igen om en stund.")
 
 # === /start ===
-        from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-
 @bot.message_handler(commands=["start"])
 def send_welcome(message):
     markup = InlineKeyboardMarkup()
