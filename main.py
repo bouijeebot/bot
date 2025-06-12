@@ -22,6 +22,8 @@ GOOGLE_CREDENTIALS_FILE = "credentials.json"
 
 bot = telebot.TeleBot(TOKEN)
 
+app = Flask(__name__)
+
 @app.route("/generate", methods=["POST"])
 def run_signal_engine():
     from signal_engine import generate_signals_and_dispatch  # <-- Lägg in här istället
