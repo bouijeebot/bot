@@ -9,7 +9,7 @@ from datetime import datetime, timedelta, timezone
 import threading
 import random
 import time
-from pytz import timezone
+from pytz import timezone as pytz_timezone
 
 # === Pending signals för påminnelser ===
 pending_signals = []
