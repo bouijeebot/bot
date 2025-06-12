@@ -9,6 +9,7 @@ import threading
 import random
 import time
 from pytz import timezone as pytz_timezone
+from flask import Flask, request
 
 # === Pending signals för påminnelser ===
 pending_signals = []
