@@ -1,14 +1,18 @@
-from sugarmama_worker import start_ai_signal_loop, check_signals_result, reminder_loop
-import threading
 import time
+import threading
+from sugarmama_worker import (
+    start_ai_signal_loop,
+    check_signals_result,
+    reminder_loop
+)
 
 if __name__ == "__main__":
-    print("🚀 Startar background worker...")
+    print("🚀 Bouijee Worker startar...")
 
-    # Starta AI-signalmodul
+    # Starta AI-signal-loop
     start_ai_signal_loop()
 
-    # Starta resultatövervakning
+    # Starta resultat-uppföljning
     check_signals_result()
 
     # Starta påminnelse-loop
@@ -16,6 +20,6 @@ if __name__ == "__main__":
     reminder_thread.daemon = True
     reminder_thread.start()
 
-    # Håll igång processen
+    # Håll processen vid liv
     while True:
         time.sleep(60)
