@@ -461,9 +461,6 @@ def handle_callback(call):
 
     except Exception as e:
         bot.send_message(call.message.chat.id, "Oops! Något gick fel med knappen 😿 Testa igen eller skriv /meny")
-
-    bot.message_handler(func=lambda m: str(m.from_user.id) in awaiting_balance_input)(handle_balance_input)
-    bot.message_handler(func=lambda message: True, content_types=['text'])(handle_unexpected_messages)
       
 def handle_balance_input(message):
     telegram_id = str(message.from_user.id)
