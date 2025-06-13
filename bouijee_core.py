@@ -429,23 +429,6 @@ def handle_callback(call):
     elif call.data == "decline":
         bot.send_message(call.message.chat.id, "Got it babes🤫 vi tar nästa istället!")
       
-def handle_callback(call):
-    telegram_id = call.from_user.id
-    user = call.from_user.first_name or "Okänd"
-
-    if call.data == "accept":
-        for s in pending_signals:
-            if s['user_id'] == telegram_id and not s['confirmed']:
-                s['confirmed'] = True
-                symbol = s.get("symbol", "EURUSD")
-                action = s.get("action", "BUY")
-                bot.send_message(call.message.chat.id, "Yaaas Let’s go!🥂")
-                log_trade_signal(telegram_id, user, symbol, action)
-                break
-
-    elif call.data == "decline":
-        bot.send_message(call.message.chat.id, "Got it babes🤫 vi tar nästa istället!")
-      
 def handle_balance_input(message):
     telegram_id = str(message.from_user.id)
     text = message.text.strip()
