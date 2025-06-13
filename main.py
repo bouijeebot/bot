@@ -1,4 +1,3 @@
-from flask import Flask, request
 import os
 from dotenv import load_dotenv
 import telebot
@@ -22,13 +21,6 @@ SHEET_ID = os.getenv("SHEET_ID")
 GOOGLE_CREDENTIALS_FILE = "credentials.json"
 
 bot = telebot.TeleBot(TOKEN)
-
-app = Flask(__name__)
-
-@app.route("/generate", methods=["POST"])
-def run_signal_engine():
-    from signal_engine import generate_signals_and_dispatch  # <-- Lägg in här istället
-    return generate_signals_and_dispatch()
 
 # === Google Sheets funktioner ===
 def register_user_if_not_exists(telegram_id):
