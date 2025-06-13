@@ -412,7 +412,6 @@ def show_valutapar_info(call):
 """
     bot.send_message(call.message.chat.id, valutapar_info_text, parse_mode="HTML")
 
-@bot.callback_query_handler(func=lambda call: True)
 def handle_callback(call):
     telegram_id = call.from_user.id
     user = call.from_user.first_name or "Okänd"
