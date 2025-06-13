@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from flask import Flask, request
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 import gspread
@@ -19,9 +20,27 @@ load_dotenv()
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 SHEET_ID = os.getenv("SHEET_ID")
 GOOGLE_CREDENTIALS_FILE = "credentials.json"
+app = Flask(__name__)
 
 bot = telebot.TeleBot(TOKEN)
 
+# === Importera all Telegrambotlogik här ===
+from bouijee_handlers import register_all_handlers  # skapa denna fil nedan
+register_all_handlers(bot)
+
+@app.route("/", methods=["POST"])
+def webhook():
+    update = telebot.types.Update.de_json(request.data.decode("utf-8"))
+    bot.process_new_updates([update])
+    return "OK", 200
+
+@app.route("/", methods=["GET"])
+def home():
+    return "Bouijee webhook är igång 💅", 200
+
+if __name__ == "__main__":
+    app.run()
+    
 # === Google Sheets funktioner ===
 def register_user_if_not_exists(telegram_id):
     creds = get_credentials()
