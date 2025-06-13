@@ -655,21 +655,34 @@ def start_ai_signal_loop():
     from macd_ai_to_sheets import run_macd_strategy
 
     def loop():
+        iteration = 1
         while True:
+            print(f"🔁 AI-signal loop startar – iteration {iteration}")
             try:
-                # 🟡 Konvertera CSV till 1H-data
-                convert_m1_to_1h("DAT_ASCII_GBPUSD_M1_ALL.csv", "GBPUSD_1h.csv")
+                input_file = "DAT_ASCII_GBPUSD_M1_ALL.csv"
+                output_file = "GBPUSD_1h.csv"
 
-                # 🟢 Kör AI-signalstrategi
-                run_macd_strategy("GBPUSD_1h.csv", "GBPUSD")
-                print("✅ AI-signal genererad och sparad till Google Sheets")
+                if not os.path.exists(input_file):
+                    print(f"⚠️ Filen '{input_file}' saknas. Hoppar över iteration.")
+                else:
+                    # 🟡 Konvertera CSV till 1H-data
+                    print("📥 Konverterar CSV till 1H-data...")
+                    convert_m1_to_1h(input_file, output_file)
+
+                    # 🧠 Kör AI-signalstrategi
+                    print("🧠 Kör AI-signalstrategi...")
+                    run_macd_strategy(output_file, "GBPUSD")
+
+                    print("✅ AI-signal genererad och sparad till Google Sheets")
 
             except Exception as e:
                 print("❌ AI-signalloop error:", e)
 
+            iteration += 1
             time.sleep(3600)  # kör varje timme
 
     import threading
+    print("🚀 Startar AI-signaltråd...")
     thread = threading.Thread(target=loop)
     thread.daemon = True
     thread.start()
@@ -683,6 +696,10 @@ check_signals_result()
 # === Starta på Render ===
 if __name__ == "__main__":
     print("Bouijee Bot är igång...")
-
-    # Starta polling
     bot.polling(none_stop=True)
+
+    # Backup: håll igång processen
+    while True:
+        time.sleep(10)
+
+
