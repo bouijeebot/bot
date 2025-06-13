@@ -30,7 +30,13 @@ def register_all_handlers(bot):
     bot.callback_query_handler(func=lambda call: call.data == "standby")(handle_standby)
     bot.callback_query_handler(func=lambda call: call.data == "valutapar_info")(show_valutapar_info)
     bot.callback_query_handler(func=lambda call: call.data.startswith("confirm_"))(handle_confirm_signal)
-    bot.callback_query_handler(func=lambda call: True)(handle_callback)
+
+    # === Fångar övriga knappar (fallback) ===
+    bot.callback_query_handler(
+        func=lambda call: call.data not in [
+            "info", "risknivå", "mitt_konto", "koppla_mt4", "demo_signal", "standby", "valutapar_info"
+        ] and not call.data.startswith("risk_") and not call.data.startswith("confirm_")
+    )(handle_callback)
 
     # === Textsvar och saldo ===
     bot.message_handler(func=lambda m: str(m.from_user.id) in awaiting_balance_input)(handle_balance_input)
