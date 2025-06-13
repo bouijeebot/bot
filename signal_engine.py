@@ -1,5 +1,6 @@
 import gspread
-from main import send_signal, get_credentials, SHEET_ID
+from bouijee_core import send_signal
+from bouijee_utils import get_credentials, SHEET_ID
 from datetime import datetime
 
 def generate_signals_and_dispatch():
