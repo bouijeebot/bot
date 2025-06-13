@@ -412,22 +412,56 @@ def show_valutapar_info(call):
 """
     bot.send_message(call.message.chat.id, valutapar_info_text, parse_mode="HTML")
 
+@bot.callback_query_handler(func=lambda call: True)
 def handle_callback(call):
     telegram_id = call.from_user.id
     user = call.from_user.first_name or "Okänd"
+    data = call.data
 
-    if call.data == "accept":
-        for s in pending_signals:
-            if s['user_id'] == telegram_id and not s['confirmed']:
-                s['confirmed'] = True
-                symbol = s.get("symbol", "EURUSD")
-                action = s.get("action", "BUY")
-                bot.send_message(call.message.chat.id, "Yaaas Let’s go!🥂")
-                log_trade_signal(telegram_id, user, symbol, action)
-                break
+    try:
+        if data == "mitt_konto":
+            handle_mitt_konto(call)
 
-    elif call.data == "decline":
-        bot.send_message(call.message.chat.id, "Got it babes🤫 vi tar nästa istället!")
+        elif data == "koppla_mt4":
+            prompt_mt4_id(call)
+
+        elif data == "risknivå":
+            choose_risk_level(call)
+
+        elif data.startswith("risk_"):
+            handle_risk_selection(call)
+
+        elif data == "info":
+            show_info(call)
+
+        elif data == "valutapar_info":
+            show_valutapar_info(call)
+
+        elif data == "standby":
+            handle_standby(call)
+
+        elif data == "demo_signal":
+            show_main_menu(call)
+
+        elif data == "accept":
+            for s in pending_signals:
+                if s['user_id'] == telegram_id and not s['confirmed']:
+                    s['confirmed'] = True
+                    symbol = s.get("symbol", "EURUSD")
+                    action = s.get("action", "BUY")
+                    bot.send_message(call.message.chat.id, "Yaaas Let’s go!🥂")
+                    log_trade_signal(telegram_id, user, symbol, action)
+                    break
+
+        elif data == "decline":
+            bot.send_message(call.message.chat.id, "Got it babes🤫 vi tar nästa istället!")
+
+        else:
+            # Okänd knapp – visa meny
+            show_menu(call.message)
+
+    except Exception as e:
+        bot.send_message(call.message.chat.id, "Oops! Något gick fel med knappen 😿 Testa igen eller skriv /meny")
       
 def handle_balance_input(message):
     telegram_id = str(message.from_user.id)
